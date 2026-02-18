@@ -120,19 +120,67 @@ int main()
         -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f
     };
+
+    body myBody;
+
+    bodyPart head(0.0f, 0.0f, 0.0f, BodyPartType::HEAD);
+    bodyPart torso(0.5f, -1.5f, 0.0f, BodyPartType::TORSO);
+    bodyPart torso2(0.5f, -2.5f, 0.0f, BodyPartType::TORSO);
+    bodyPart torso3(-0.5f, -1.5f, 0.0f, BodyPartType::TORSO);
+    bodyPart torso4(-0.5f, -2.5f, 0.0f, BodyPartType::TORSO);
+    bodyPart leftArm1(-2.0f, -1.5f, 0.0f, BodyPartType::ARM);
+    bodyPart leftArm2(-2.0f, -2.6f, 0.0f, BodyPartType::ARM);
+    bodyPart rightArm1(2.0f, -1.5f, 0.0f, BodyPartType::ARM);
+    bodyPart rightArm2(2.0f, -2.6f, 0.0f, BodyPartType::ARM);
+    bodyPart leftLeg1(0.5f, -4.0f, 0.0f, BodyPartType::LEG);
+    bodyPart leftLeg2(0.5f, -5.1f, 0.0f, BodyPartType::LEG);
+    bodyPart rightLeg1(-0.6f, -4.0f, 0.0f, BodyPartType::LEG);
+    bodyPart rightLeg2(-0.6f, -5.1f, 0.0f, BodyPartType::LEG);
+
+    myBody.addPart(head);
+    myBody.addPart(torso);
+    myBody.addPart(torso2);
+    myBody.addPart(torso3);
+    myBody.addPart(torso4);
+    myBody.addPart(leftArm1);
+    myBody.addPart(leftArm2);
+    myBody.addPart(rightArm1);
+    myBody.addPart(rightArm2);
+    myBody.addPart(leftLeg1);
+    myBody.addPart(leftLeg2);
+    myBody.addPart(rightLeg1);
+    myBody.addPart(rightLeg2);
+
     // world space positions of our cubes
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
+    // glm::vec3 cubePositions[] = {
+    //     // droite/gauche | haut/bas | avant/arrière
+    //     // head
+    //     glm::vec3( 0.0f,  0.0f,  0.0f),
+    //     // body part 1
+    //     glm::vec3( 0.5f,  -1.5f, 0.0f),
+    //     // body part 2
+    //     glm::vec3( 0.5f,  -2.0f, 0.0f),
+    //     // body part 3
+    //     glm::vec3( -0.5f,  -1.5f, 0.0f),
+    //     // body part 4
+    //     glm::vec3( -0.5f,  -2.0f, 0.0f),
+    //     // left arm part 1
+    //     glm::vec3(-2.0f, -1.5f, 0.0f),
+    //     // left arm part 2
+    //     glm::vec3(-2.0f, -2.5f, 0.0f),
+    //     // right arm part 1
+    //     glm::vec3(2.0f, -1.5f, 0.0f),
+    //     // right arm part 2
+    //     glm::vec3(2.0f, -2.5f, 0.0f),
+    //     // left leg part 1
+    //     glm::vec3(-0.6f, -3.5f, 0.0f),
+    //     // left leg part 2
+    //     glm::vec3(-0.6f, -4.5f, 0.0f),
+    //     // right leg part 1
+    //     glm::vec3(0.6f, -3.5f, 0.0f),
+    //     // right leg part 2
+    //     glm::vec3(0.6f, -4.5f, 0.0f),
+    // };
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -195,21 +243,30 @@ int main()
 
         // render boxes
         glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < 1; i++)
-        {
-            // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            ourShader.setMat4("model", model);
+        // for (unsigned int i = 0; i < 13; i++)
+        // {
+        //     // calculate the model matrix for each object and pass it to shader before drawing
+        //     glm::mat4 model = glm::mat4(1.0f);
+        //     model = glm::translate(model, cubePositions[i]);
+        //     // float angle = 20.0f * i;
+        //     model = glm::rotate(model, glm::radians(0), glm::vec3(1.0f, 0.3f, 0.5f));
+        //     ourShader.setMat4("model", model);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            {
-                GLenum _err = glGetError();
-                if (_err != GL_NO_ERROR) std::cout << "[debug] GL error after draw: " << _err << std::endl;
-            }
-        }
+        //     glDrawArrays(GL_TRIANGLES, 0, 36);
+        //     {
+        //         GLenum _err = glGetError();
+        //         if (_err != GL_NO_ERROR) std::cout << "GL error after draw: " << _err << std::endl;
+        //     }
+        // }
+
+        // draw the head
+        myBody.draw_head(ourShader);
+        // draw the body
+        myBody.draw_body(ourShader);
+        // draw the arms
+        myBody.draw_arm(ourShader);
+        // draw the legs
+        myBody.draw_leg(ourShader);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -257,6 +314,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+
     (void)window;
     if (firstMouse)
     {
