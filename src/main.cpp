@@ -20,6 +20,37 @@ bool mouseOn = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std::vector<int> attachmentStates)
+{
+    std::map<glm::vec3, int> attachmentPoints;
+
+    // up
+    glm::vec3 point = cubePosition + glm::vec3(0.0f, 0.5f, 0.0f);
+    attachmentPoints[point] = attachmentStates[0];
+
+    // down
+    point = cubePosition + glm::vec3(0.0f, -0.5f, 0.0f);
+    attachmentPoints[point] = attachmentStates[1];
+
+    // left
+    point = cubePosition + glm::vec3(-0.5f, -0.0f, 0.0f);
+    attachmentPoints[point] = attachmentStates[2];
+
+    // right
+    point = cubePosition + glm::vec3(0.5f, -0.0f, 0.0f);
+    attachmentPoints[point] = attachmentStates[3];
+
+    // front
+    point = cubePosition + glm::vec3(0.0f, -0.0f, 0.5f);
+    attachmentPoints[point] = attachmentStates[4];
+
+    // back
+    point = cubePosition + glm::vec3(0.0f, -0.0f, -0.5f);
+    attachmentPoints[point] = attachmentStates[5];
+
+    return attachmentPoints;
+}
+
 int main()
 {
     // glfw: initialize and configure
@@ -123,23 +154,68 @@ int main()
 
     body myBody;
 
-    bodyPart head(0.0f, 0.0f, 0.0f, BodyPartType::HEAD);
-    bodyPart torso(0.5f, -1.0f, 0.0f, BodyPartType::TORSO);
-    bodyPart torso2(0.5f, -2.0f, 0.0f, BodyPartType::TORSO);
-    bodyPart torso3(-0.5f, -1.0f,0.0f, BodyPartType::TORSO);
-    bodyPart torso4(-0.5f, -2.0f, 0.0f, BodyPartType::TORSO);
-    bodyPart leftArm1(-1.5f, -1.0f, 0.0f, BodyPartType::UPPER_ARM);
-    bodyPart leftArm2(-1.5f, -2.0f, 0.0f, BodyPartType::LOWER_ARM);
-    bodyPart rightArm1(1.5f, -1.0f, 0.0f, BodyPartType::UPPER_ARM);
-    bodyPart rightArm2(1.5f, -2.0f, 0.0f, BodyPartType::LOWER_ARM);
-    bodyPart leftLeg1(0.5f, -3.0f, 0.0f, BodyPartType::THIGH);
-    bodyPart leftLeg2(0.5f, -4.0f, 0.0f, BodyPartType::LOWER_PART);
-    bodyPart rightLeg1(-0.5f, -3.0f, 0.0f, BodyPartType::THIGH);
-    bodyPart rightLeg2(-0.5f, -4.0f, 0.0f, BodyPartType::LOWER_PART);
+    std::map<glm::vec3, int> attachmentPoints;
+
+    // up, down, left, right, front, back
+    // right/left | up/down | front/back
+    attachmentPoints = setAtachementPoints({0.0f, 0.0f, 0.0f}, {0, 2, 0, 0, 0, 0});
+    bodyPart head(0.0f, 0.0f, 0.0f, BodyPartType::HEAD, attachmentPoints);
     
+    // right up torso
+    attachmentPoints = setAtachementPoints({0.5f, -1.0f, 0.0f}, {0, 1, 1, 2, 0, 0});
+    bodyPart torso(0.5f, -1.0f, 0.0f, BodyPartType::TORSO, attachmentPoints);
+    
+    // right down torso
+    attachmentPoints = setAtachementPoints({0.5f, -2.0f, 0.0f}, {1, 2, 1, 0, 0, 0});
+    bodyPart torso2(0.5f, -2.0f, 0.0f, BodyPartType::TORSO, attachmentPoints);
+    
+    // left up torso
+    attachmentPoints = setAtachementPoints({-0.5f, -1.0f, 0.0f}, {0, 1, 2, 1, 0, 0});
+    bodyPart torso3(-0.5f, -1.0f, 0.0f, BodyPartType::TORSO, attachmentPoints);
 
+    // left down torso
+    attachmentPoints = setAtachementPoints({-0.5f, -2.0f, 0.0f}, {1, 2, 0, 1, 0, 0});
+    bodyPart torso4(-0.5f, -2.0f, 0.0f, BodyPartType::TORSO, attachmentPoints);
+    
+    // up left arm
+    attachmentPoints = setAtachementPoints({-1.5f, -1.0f, 0.0f}, {0, 2, 0, 2, 0, 0});
+    bodyPart leftArm1(-1.5f, -1.0f, 0.0f, BodyPartType::UPPER_ARM, attachmentPoints);
+    
+    // down left arm
+    attachmentPoints = setAtachementPoints({-1.5f, -2.0f, 0.0f}, {2, 0, 0, 0, 0, 0});
+    bodyPart leftArm2(-1.5f, -2.0f, 0.0f, BodyPartType::LOWER_ARM, attachmentPoints);
+    
+    // up right arm
+    attachmentPoints = setAtachementPoints({1.5f, -1.0f, 0.0f}, {0, 2, 2, 0, 0, 0});
+    bodyPart rightArm1(1.5f, -1.0f, 0.0f, BodyPartType::UPPER_ARM, attachmentPoints);
+    
+    // down right arm
+    attachmentPoints = setAtachementPoints({1.5f, -2.0f, 0.0f}, {2, 0, 0, 0, 0, 0});
+    bodyPart rightArm2(1.5f, -2.0f, 0.0f, BodyPartType::LOWER_ARM, attachmentPoints);
 
+    // up left leg
+    attachmentPoints = setAtachementPoints({-0.5f, -3.0f, 0.0f}, {2, 2, 0, 0, 0, 0});
+    bodyPart leftLeg1(-0.5f, -3.0f, 0.0f, BodyPartType::THIGH, attachmentPoints);
+    
+    // down left leg
+    attachmentPoints = setAtachementPoints({-0.5f, -3.0f, 0.0f}, {2, 0, 0, 0, 0, 0});
+    bodyPart leftLeg2(-0.5f, -4.0f, 0.0f, BodyPartType::LOWER_PART, attachmentPoints);
+    
+    // up right leg
+    attachmentPoints = setAtachementPoints({-0.5f, -3.0f, 0.0f}, {2, 2, 0, 0, 0, 0});
+    bodyPart rightLeg1(0.5f, -3.0f, 0.0f, BodyPartType::THIGH, attachmentPoints);
+    
+    // down right leg
+    attachmentPoints = setAtachementPoints({-0.5f, -3.0f, 0.0f}, {2, 0, 0, 0, 0, 0});
+    bodyPart rightLeg2(0.5f, -4.0f, 0.0f, BodyPartType::LOWER_PART, attachmentPoints);
 
+    // glm::vec3 cubePos = {0.0f, 0.0f, 2.0f};
+    // const float CUBE_HALF = -0.50f;
+    // glm::vec3 topCenter = cubePos + glm::vec3(0.0f, CUBE_HALF, 0.0f);
+    // attachmentPoints = {{topCenter, true}};
+    // bodyPart test(cubePos.x, cubePos.y, cubePos.z, BodyPartType::WALL, attachmentPoints);
+
+    // myBody.addPart(test);
 
     // --------------------------------------------   DRAW WALL   --------------------------------------------
     
@@ -201,9 +277,6 @@ int main()
     // color attribute (location = 1)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-
-    // No textures: per-vertex colors are used instead
 
 
     // render loop
@@ -274,7 +347,6 @@ int main()
         myBody.draw_leg(ourShader);
 
         
-        // --------------------------------------------   DRAW WALL   --------------------------------------------
         // // 255, 255, 255
         // for (int i = 0; i < 36; i++)
         // {

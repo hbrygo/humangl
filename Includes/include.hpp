@@ -13,7 +13,23 @@
 #include "FileSystem.hpp"
 #include "stb_image.h"
 #include "Camera.hpp"
+#include <map>
 
+// Allow using glm::vec3 as key in ordered containers (std::map, std::set) by
+// providing a strict-weak-ordering comparator specialization for std::less.
+// This performs a lexicographic compare on (x, y, z).
+namespace std {
+    template<>
+    struct less<glm::vec3> {
+        bool operator()(glm::vec3 const& a, glm::vec3 const& b) const noexcept {
+            if (a.x < b.x) return true;
+            if (b.x < a.x) return false;
+            if (a.y < b.y) return true;
+            if (b.y < a.y) return false;
+            return a.z < b.z;
+        }
+    };
+}
 
 enum BodyPartType {
     HEAD,
@@ -33,9 +49,14 @@ class bodyPart {
         float z;
         glm::vec3 initialPosition;
         BodyPartType partType;
+        // dans la map: 0 = plus proche du tronc -> 1 = plus loin
+        // int none/fixe/mobile -> 0 = n'existe pas, 1 = fixe, 2 = mobile
+        std::map<glm::vec3, int> attachmentPoints;
+        float orientation;
+        // angle de depart = 0
 
     public:
-        bodyPart(float x, float y, float z, BodyPartType partType) : x(x), y(y), z(z), initialPosition(x, y, z), partType(partType) {}
+        bodyPart(float x, float y, float z, BodyPartType partType, std::map<glm::vec3, int> attachmentPoints) : x(x), y(y), z(z), initialPosition(x, y, z), partType(partType), attachmentPoints(attachmentPoints), orientation(0.0f) { (void)orientation; }
 
         float getX() const { return x; }
         float getY() const { return y; }
@@ -44,6 +65,9 @@ class bodyPart {
         BodyPartType getPartType() const { return partType; }
 
         glm::vec3 getPosition() { return glm::vec3(x, y, z); }
+
+        // expose attachment points so other systems (e.g., renderer) can access them
+        const std::map<glm::vec3, int>& getAttachmentPoints() const { return attachmentPoints; }
 
         int operator==(const bodyPart& other) const {
             return (partType == other.partType);
