@@ -128,14 +128,14 @@ int main()
     bodyPart torso2(0.5f, -2.0f, 0.0f, BodyPartType::TORSO);
     bodyPart torso3(-0.5f, -1.0f,0.0f, BodyPartType::TORSO);
     bodyPart torso4(-0.5f, -2.0f, 0.0f, BodyPartType::TORSO);
-    bodyPart leftArm1(-1.5f, -1.0f, 0.0f, BodyPartType::ARM);
-    bodyPart leftArm2(-1.5f, -2.0f, 0.0f, BodyPartType::ARM);
-    bodyPart rightArm1(1.5f, -1.0f, 0.0f, BodyPartType::ARM);
-    bodyPart rightArm2(1.5f, -2.0f, 0.0f, BodyPartType::ARM);
-    bodyPart leftLeg1(0.5f, -3.0f, 0.0f, BodyPartType::LEG);
-    bodyPart leftLeg2(0.5f, -4.0f, 0.0f, BodyPartType::LEG);
-    bodyPart rightLeg1(-0.5f, -3.0f, 0.0f, BodyPartType::LEG);
-    bodyPart rightLeg2(-0.5f, -4.0f, 0.0f, BodyPartType::LEG);
+    bodyPart leftArm1(-1.5f, -1.0f, 0.0f, BodyPartType::UPPER_ARM);
+    bodyPart leftArm2(-1.5f, -2.0f, 0.0f, BodyPartType::LOWER_ARM);
+    bodyPart rightArm1(1.5f, -1.0f, 0.0f, BodyPartType::UPPER_ARM);
+    bodyPart rightArm2(1.5f, -2.0f, 0.0f, BodyPartType::LOWER_ARM);
+    bodyPart leftLeg1(0.5f, -3.0f, 0.0f, BodyPartType::THIGH);
+    bodyPart leftLeg2(0.5f, -4.0f, 0.0f, BodyPartType::LOWER_PART);
+    bodyPart rightLeg1(-0.5f, -3.0f, 0.0f, BodyPartType::THIGH);
+    bodyPart rightLeg2(-0.5f, -4.0f, 0.0f, BodyPartType::LOWER_PART);
     
 
 
