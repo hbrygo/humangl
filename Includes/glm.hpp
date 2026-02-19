@@ -14,6 +14,8 @@ struct vec3 {
     vec3(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
     float& operator[](int i) { return i==0? x : (i==1? y : z); }
     const float& operator[](int i) const { return i==0? x : (i==1? y : z); }
+    const vec3 operator-(const vec3 other) const { return vec3(x - other.x, y - other.y, z - other.z); }
+    const vec3 operator+(const vec3 other) const { return vec3(x + other.x, y + other.y, z + other.z); }
 };
 
 struct vec2 {
@@ -146,6 +148,48 @@ inline mat4 perspective(float fovy, float aspect, float znear, float zfar) {
     Result.data[11] = -1.0f;                         // m23
     Result.data[14] = -(2.0f * zfar * znear) / (zfar - znear); // m32
     Result.data[15] = 0.0f;                          // m33
+    return Result;
+}
+
+inline vec3 normalize(const vec3 &v) {
+    float len = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    if (len > 0.0f) {
+        return vec3(v.x / len, v.y / len, v.z / len);
+    }
+    return v;
+}
+
+inline float dot(const vec3 &a, const vec3 &b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline vec3 cross(const vec3 &a, const vec3 &b) {
+    return vec3(
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    );
+}
+
+inline mat4 lookAt(const vec3 &cam, const vec3 &center, const vec3 &up) {
+    vec3 f = normalize(center - cam);
+    vec3 s = normalize(cross(f, up));
+    vec3 u = cross(s, f);
+
+    mat4 Result(1.0f);
+    Result.data[0] = s.x;
+    Result.data[1] = u.x;
+    Result.data[2] = -f.x;
+    Result.data[4] = s.y;
+    Result.data[5] = u.y;
+    Result.data[6] = -f.y;
+    Result.data[8] = s.z;
+    Result.data[9] = u.z;
+    Result.data[10] = -f.z;
+    Result.data[12] = -dot(s, cam);
+    Result.data[13] = -dot(u, cam);
+    Result.data[14] = dot(f, cam);
+
     return Result;
 }
 

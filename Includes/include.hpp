@@ -18,8 +18,11 @@
 enum BodyPartType {
     HEAD,
     TORSO,
-    ARM,
-    LEG
+    UPPER_ARM,
+    LOWER_ARM,
+    THIGH, // leg
+    LOWER_PART, // leg
+    WALL
 };
 
 class bodyPart {
@@ -101,9 +104,32 @@ class body {
             }
         }
         
-        void draw_arm(Shader& ourShader) {
+        void draw_wall(Shader& ourShader) {
             for (const auto& part : parts) {
-                if (part.getPartType() == BodyPartType::ARM) {
+                if (part.getPartType() == BodyPartType::WALL) {
+                    float x = part.getX();
+                    float y = part.getY();
+                    float z = part.getZ();
+                    glm::vec3 position = {x, y, z};
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, position);
+                    
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    {
+                        GLenum _err = glGetError();
+                        if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw: " << _err << std::endl;
+                    }
+                }
+            }
+        }
+        
+        void draw_arm(Shader& ourShader) {
+            BodyPartType bodyPart;
+            for (const auto& part : parts) {
+                bodyPart = part.getPartType();
+                if (bodyPart == BodyPartType::UPPER_ARM || bodyPart == BodyPartType::LOWER_ARM) {
                     float x = part.getX();
                     float y = part.getY();
                     float z = part.getZ();
@@ -123,8 +149,10 @@ class body {
         }
         
         void draw_leg(Shader& ourShader) {
+            BodyPartType bodyPart;
             for (const auto& part : parts) {
-                if (part.getPartType() == BodyPartType::LEG) {
+                bodyPart = part.getPartType();
+                if (bodyPart == BodyPartType::THIGH || bodyPart == BodyPartType::LOWER_PART) {
                     float x = part.getX();
                     float y = part.getY();
                     float z = part.getZ();

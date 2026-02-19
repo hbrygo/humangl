@@ -1,7 +1,7 @@
 #include "include.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window, bool &pressOneTime);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -14,6 +14,7 @@ Camera camera;
 float lastX = 0.0f;
 float lastY = 0.0f;
 bool firstMouse = true;
+bool mouseOn = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -34,7 +35,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lderidde", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -68,7 +69,6 @@ int main()
     // build and compile our shader zprogram
     // ------------------------------------
     Shader ourShader("6.3.coordinate_systems.vs", "6.3.coordinate_systems.fs");
-    std::cout << "[debug] Shader ID = " << ourShader.ID << std::endl;
     {
         GLenum _err = glGetError();
         if (_err != GL_NO_ERROR) std::cout << "[debug] GL error after shader creation: " << _err << std::endl;
@@ -124,18 +124,47 @@ int main()
     body myBody;
 
     bodyPart head(0.0f, 0.0f, 0.0f, BodyPartType::HEAD);
-    bodyPart torso(0.5f, -1.5f, 0.0f, BodyPartType::TORSO);
-    bodyPart torso2(0.5f, -2.5f, 0.0f, BodyPartType::TORSO);
-    bodyPart torso3(-0.5f, -1.5f, 0.0f, BodyPartType::TORSO);
-    bodyPart torso4(-0.5f, -2.5f, 0.0f, BodyPartType::TORSO);
-    bodyPart leftArm1(-2.0f, -1.5f, 0.0f, BodyPartType::ARM);
-    bodyPart leftArm2(-2.0f, -2.6f, 0.0f, BodyPartType::ARM);
-    bodyPart rightArm1(2.0f, -1.5f, 0.0f, BodyPartType::ARM);
-    bodyPart rightArm2(2.0f, -2.6f, 0.0f, BodyPartType::ARM);
-    bodyPart leftLeg1(0.5f, -4.0f, 0.0f, BodyPartType::LEG);
-    bodyPart leftLeg2(0.5f, -5.1f, 0.0f, BodyPartType::LEG);
-    bodyPart rightLeg1(-0.6f, -4.0f, 0.0f, BodyPartType::LEG);
-    bodyPart rightLeg2(-0.6f, -5.1f, 0.0f, BodyPartType::LEG);
+    bodyPart torso(0.5f, -1.0f, 0.0f, BodyPartType::TORSO);
+    bodyPart torso2(0.5f, -2.0f, 0.0f, BodyPartType::TORSO);
+    bodyPart torso3(-0.5f, -1.0f,0.0f, BodyPartType::TORSO);
+    bodyPart torso4(-0.5f, -2.0f, 0.0f, BodyPartType::TORSO);
+    bodyPart leftArm1(-1.5f, -1.0f, 0.0f, BodyPartType::ARM);
+    bodyPart leftArm2(-1.5f, -2.0f, 0.0f, BodyPartType::ARM);
+    bodyPart rightArm1(1.5f, -1.0f, 0.0f, BodyPartType::ARM);
+    bodyPart rightArm2(1.5f, -2.0f, 0.0f, BodyPartType::ARM);
+    bodyPart leftLeg1(0.5f, -3.0f, 0.0f, BodyPartType::LEG);
+    bodyPart leftLeg2(0.5f, -4.0f, 0.0f, BodyPartType::LEG);
+    bodyPart rightLeg1(-0.5f, -3.0f, 0.0f, BodyPartType::LEG);
+    bodyPart rightLeg2(-0.5f, -4.0f, 0.0f, BodyPartType::LEG);
+    
+
+
+
+
+    // --------------------------------------------   DRAW WALL   --------------------------------------------
+    
+    
+    // generate a configurable wall grid instead of many manual variables
+    // Change WALL_ROWS and WALL_COLS to control how many wall cubes are created.
+    // Note: large values (e.g. 100x100 = 10k cubes) can impact performance.
+    // const int WALL_ROWS = 30; // number of rows (vertical)
+    // const int WALL_COLS = 30; // number of columns (horizontal)
+    // const float WALL_START_X = 15.0f;   // starting X coordinate
+    // const float WALL_START_Y = 15.0f;  // starting Y coordinate
+    // const float WALL_SPACING_X = -1.0f; // spacing between columns (negative to go left)
+    // const float WALL_SPACING_Y = -1.0f; // spacing between rows (downwards)
+    // const float WALL_Z = -15.0f;
+    // std::vector<bodyPart> walls;
+    // walls.reserve(static_cast<size_t>(WALL_ROWS) * static_cast<size_t>(WALL_COLS));
+    // for (int r = 0; r < WALL_ROWS; ++r) {
+    //     for (int c = 0; c < WALL_COLS; ++c) {
+    //         float x = WALL_START_X + c * WALL_SPACING_X;
+    //         float y = WALL_START_Y + r * WALL_SPACING_Y;
+    //         walls.emplace_back(x, y, WALL_Z, BodyPartType::WALL);
+    //     }
+    // }
+    // add generated wall parts
+    // for (const auto& w : walls) myBody.addPart(w);
 
     myBody.addPart(head);
     myBody.addPart(torso);
@@ -151,36 +180,6 @@ int main()
     myBody.addPart(rightLeg1);
     myBody.addPart(rightLeg2);
 
-    // world space positions of our cubes
-    // glm::vec3 cubePositions[] = {
-    //     // droite/gauche | haut/bas | avant/arrière
-    //     // head
-    //     glm::vec3( 0.0f,  0.0f,  0.0f),
-    //     // body part 1
-    //     glm::vec3( 0.5f,  -1.5f, 0.0f),
-    //     // body part 2
-    //     glm::vec3( 0.5f,  -2.0f, 0.0f),
-    //     // body part 3
-    //     glm::vec3( -0.5f,  -1.5f, 0.0f),
-    //     // body part 4
-    //     glm::vec3( -0.5f,  -2.0f, 0.0f),
-    //     // left arm part 1
-    //     glm::vec3(-2.0f, -1.5f, 0.0f),
-    //     // left arm part 2
-    //     glm::vec3(-2.0f, -2.5f, 0.0f),
-    //     // right arm part 1
-    //     glm::vec3(2.0f, -1.5f, 0.0f),
-    //     // right arm part 2
-    //     glm::vec3(2.0f, -2.5f, 0.0f),
-    //     // left leg part 1
-    //     glm::vec3(-0.6f, -3.5f, 0.0f),
-    //     // left leg part 2
-    //     glm::vec3(-0.6f, -4.5f, 0.0f),
-    //     // right leg part 1
-    //     glm::vec3(0.6f, -3.5f, 0.0f),
-    //     // right leg part 2
-    //     glm::vec3(0.6f, -4.5f, 0.0f),
-    // };
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -192,7 +191,6 @@ int main()
     {
         GLint bufSize = 0;
         glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufSize);
-        std::cout << "[debug] VBO size = " << bufSize << " bytes\n";
         GLenum _err = glGetError();
         if (_err != GL_NO_ERROR) std::cout << "[debug] GL error after glBufferData: " << _err << std::endl;
     }
@@ -204,14 +202,13 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    std::cout << "[debug] VAO=" << VAO << " VBO=" << VBO << std::endl;
-
 
     // No textures: per-vertex colors are used instead
 
 
     // render loop
     // -----------
+    bool pressOneTime = false;
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -221,7 +218,7 @@ int main()
 
         // input
         // -----
-        processInput(window);
+        processInput(window, pressOneTime);
 
         // render
         // ------
@@ -234,39 +231,59 @@ int main()
         ourShader.use();
 
         // create transformations
-    glm::mat4 projection    = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection    = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
         // pass transformation matrices to the shader
         ourShader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
         ourShader.setMat4("view", view);
 
         // render boxes
         glBindVertexArray(VAO);
-        // for (unsigned int i = 0; i < 13; i++)
-        // {
-        //     // calculate the model matrix for each object and pass it to shader before drawing
-        //     glm::mat4 model = glm::mat4(1.0f);
-        //     model = glm::translate(model, cubePositions[i]);
-        //     // float angle = 20.0f * i;
-        //     model = glm::rotate(model, glm::radians(0), glm::vec3(1.0f, 0.3f, 0.5f));
-        //     ourShader.setMat4("model", model);
 
-        //     glDrawArrays(GL_TRIANGLES, 0, 36);
-        //     {
-        //         GLenum _err = glGetError();
-        //         if (_err != GL_NO_ERROR) std::cout << "GL error after draw: " << _err << std::endl;
-        //     }
-        // }
-
-        // draw the head
+        // 255,187,119
+        for (int i = 0; i < 36; i++) {
+            vertices[(i * 6) + 3] = 255 / 255.0f;
+            vertices[(i * 6) + 4] = 187 / 255.0f;
+            vertices[(i * 6) + 5] = 119 / 255.0f;
+        }
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        
         myBody.draw_head(ourShader);
-        // draw the body
-        myBody.draw_body(ourShader);
-        // draw the arms
         myBody.draw_arm(ourShader);
-        // draw the legs
+        
+        // 0,238,221
+        for (int i = 0; i < 36; i++)
+        {
+            vertices[(i * 6) + 3] = 0 / 255.0f;
+            vertices[(i * 6) + 4] = 238 / 255.0f;
+            vertices[(i * 6) + 5] = 221 / 255.0f;
+        }
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        
+        myBody.draw_body(ourShader);
+
+        // 0,136,204
+        for (int i = 0; i < 36; i++)
+        {
+            vertices[(i * 6) + 3] = 0 / 255.0f;
+            vertices[(i * 6) + 4] = 136 / 255.0f;
+            vertices[(i * 6) + 5] = 204 / 255.0f;
+        }
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         myBody.draw_leg(ourShader);
+
+        
+        // --------------------------------------------   DRAW WALL   --------------------------------------------
+        // // 255, 255, 255
+        // for (int i = 0; i < 36; i++)
+        // {
+        //     vertices[(i * 6) + 3] = 1.0f;
+        //     vertices[(i * 6) + 4] = 1.0f;
+        //     vertices[(i * 6) + 5] = 1.0f;
+        // }
+        // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        // myBody.draw_wall(ourShader);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -287,7 +304,7 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow *window, bool &pressOneTime)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -300,6 +317,21 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(Camera::LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
+
+    // pas touche a ca, ca marche
+    if (!pressOneTime) {
+        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+            // std::cout << "C press" << std::endl;
+            mouseOn = (mouseOn == false) ? true : false;
+            if (mouseOn)
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            else
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            pressOneTime = true;
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE)
+        pressOneTime = false;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -314,22 +346,27 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-
+    // std::cout << "Mouse position: (" << xpos << ", " << ypos << ")" << std::endl;
+    if (!mouseOn)
+        return ;
     (void)window;
     if (firstMouse)
     {
+        // std::cout << "Mouse position: (" << xpos << ", " << ypos << ")" << std::endl;
         lastX = static_cast<float>(xpos);
         lastY = static_cast<float>(ypos);
         firstMouse = false;
     }
-
+    
     float xoffset = static_cast<float>(xpos) - lastX;
     float yoffset = lastY - static_cast<float>(ypos); // reversed since y-coordinates go from bottom to top
-
+    
     lastX = static_cast<float>(xpos);
     lastY = static_cast<float>(ypos);
-
+    
     camera.ProcessMouseMovement(xoffset, yoffset);
+    // if (mouseOn)
+    //     glfwSetCursorPos(window, 400, 300);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

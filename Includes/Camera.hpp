@@ -21,45 +21,14 @@ class Camera {
 
         // returns the view matrix (stub)
         glm::mat4 GetViewMatrix() const {
-            auto norm = [](glm::vec3 v) {
-                float len = std::sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
-                if (len > 0.0f) { v.x /= len; v.y /= len; v.z /= len; }
-                return v;
-            };
-            auto cross = [](const glm::vec3 &a, const glm::vec3 &b){
-                return glm::vec3(
-                    a.y * b.z - a.z * b.y,
-                    a.z * b.x - a.x * b.z,
-                    a.x * b.y - a.y * b.x
-                );
-            };
-            auto dot = [](const glm::vec3 &a, const glm::vec3 &b){
-                return a.x*b.x + a.y*b.y + a.z*b.z;
-            };
+            glm::mat4 view = glm::lookAt(Position, Position + Front, Up);
 
-            // 1) forward (f), 2) right (s), 3) up (u)
-            glm::vec3 f = norm(Front);                 // direction caméra
-            glm::vec3 s = norm(cross(f, WorldUp));     // right
-            glm::vec3 u = cross(s, f);                 // orthonormal up
-
-            glm::mat4 Result(0.0f);
-            // column 0 = s
-            Result.data[0] = s.x; Result.data[1] = s.y; Result.data[2] = s.z; Result.data[3] = 0.0f;
-            // column 1 = u
-            Result.data[4] = u.x; Result.data[5] = u.y; Result.data[6] = u.z; Result.data[7] = 0.0f;
-            // column 2 = -f
-            Result.data[8]  = -f.x; Result.data[9]  = -f.y; Result.data[10] = -f.z; Result.data[11] = 0.0f;
-            // column 3 = translation
-            Result.data[12] = -dot(s, Position);
-            Result.data[13] = -dot(u, Position);
-            Result.data[14] =  dot(f, Position);
-            Result.data[15] = 1.0f;
-
-            return Result;
+            return view;
         }
 
         // input processing (stubs)
         void ProcessKeyboard(Movement direction, float deltaTime) {
+            // std::cout << "In ProcessKeyboard -> Camera position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")" << std::endl;
             float velocity = MovementSpeed * deltaTime;
             if (direction == FORWARD)
                 Position = glm::vec3(Position.x + Front.x * velocity,
@@ -95,8 +64,10 @@ class Camera {
                     Pitch = -89.0f;
             }
 
+            // std::cout << "Before -> Camera position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")" << std::endl;
             // update Front, Right and Up Vectors using the updated Euler angles
             updateCameraVectors();
+            // std::cout << "After -> Camera position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")" << std::endl;
         }
 
         void ProcessMouseScroll(float yoffset) {
