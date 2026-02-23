@@ -87,6 +87,9 @@ class body {
         }
 
         void draw_head(Shader& ourShader) {
+            // set override color for head (skin tone)
+            ourShader.setBool("useOverrideColor", true);
+            ourShader.setVec3("overrideColor", 1.0f, 187.0f/255.0f, 119.0f/255.0f);
             for (const auto& part : parts) {
                 if (part.getPartType() == BodyPartType::HEAD) {
                     float x = part.getX();
@@ -105,9 +108,14 @@ class body {
                     }
                 }
             }
+            // disable override so other draws use vertex colors unless they enable their own override
+            ourShader.setBool("useOverrideColor", false);
         }
 
         void draw_body(Shader& ourShader) {
+            // set override color for torso
+            ourShader.setBool("useOverrideColor", true);
+            ourShader.setVec3("overrideColor", 0.0f, 238.0f/255.0f, 221.0f/255.0f);
             for (const auto& part : parts) {
                 if (part.getPartType() == BodyPartType::TORSO) {
                     float x = part.getX();
@@ -126,9 +134,13 @@ class body {
                     }
                 }
             }
+            ourShader.setBool("useOverrideColor", false);
         }
         
         void draw_wall(Shader& ourShader) {
+            // set override color for walls (light gray)
+            ourShader.setBool("useOverrideColor", true);
+            ourShader.setVec3("overrideColor", 0.9f, 0.9f, 0.9f);
             for (const auto& part : parts) {
                 if (part.getPartType() == BodyPartType::WALL) {
                     float x = part.getX();
@@ -147,9 +159,13 @@ class body {
                     }
                 }
             }
+            ourShader.setBool("useOverrideColor", false);
         }
         
         void draw_arm(Shader& ourShader) {
+            // set override color for arms (same as head)
+            ourShader.setBool("useOverrideColor", true);
+            ourShader.setVec3("overrideColor", 1.0f, 187.0f/255.0f, 119.0f/255.0f);
             BodyPartType bodyPart;
             for (const auto& part : parts) {
                 bodyPart = part.getPartType();
@@ -170,9 +186,13 @@ class body {
                     }
                 }
             }
+            ourShader.setBool("useOverrideColor", false);
         }
         
         void draw_leg(Shader& ourShader) {
+            // set override color for legs
+            ourShader.setBool("useOverrideColor", true);
+            ourShader.setVec3("overrideColor", 0.0f, 136.0f/255.0f, 204.0f/255.0f);
             BodyPartType bodyPart;
             for (const auto& part : parts) {
                 bodyPart = part.getPartType();
@@ -193,6 +213,7 @@ class body {
                     }
                 }
             }
+            ourShader.setBool("useOverrideColor", false);
         }
 };
 

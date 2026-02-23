@@ -43,9 +43,13 @@ public:
     // Fragment shader outputs the interpolated color
     fragmentCode = "#version 330 core\n"
                "in vec3 Color;\n"
+               "uniform bool useOverrideColor;\n"
+               "uniform vec3 overrideColor;\n"
                "out vec4 FragColor;\n"
                "void main()\n{\n"
-               "    FragColor = vec4(Color, 1.0);\n"
+               "    vec3 outColor = Color;\n"
+               "    if (useOverrideColor) outColor = overrideColor;\n"
+               "    FragColor = vec4(outColor, 1.0);\n"
                "}\n";
         const char* vShaderCode = vertexCode.c_str();
         const char * fShaderCode = fragmentCode.c_str();

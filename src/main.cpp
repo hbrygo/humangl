@@ -313,48 +313,11 @@ int main()
 
         // render boxes
         glBindVertexArray(VAO);
-
-        // 255,187,119
-        for (int i = 0; i < 36; i++) {
-            vertices[(i * 6) + 3] = 255 / 255.0f;
-            vertices[(i * 6) + 4] = 187 / 255.0f;
-            vertices[(i * 6) + 5] = 119 / 255.0f;
-        }
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         
         myBody.draw_head(ourShader);
         myBody.draw_arm(ourShader);
-        
-        // 0,238,221
-        for (int i = 0; i < 36; i++)
-        {
-            vertices[(i * 6) + 3] = 0 / 255.0f;
-            vertices[(i * 6) + 4] = 238 / 255.0f;
-            vertices[(i * 6) + 5] = 221 / 255.0f;
-        }
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        
         myBody.draw_body(ourShader);
-
-        // 0,136,204
-        for (int i = 0; i < 36; i++)
-        {
-            vertices[(i * 6) + 3] = 0 / 255.0f;
-            vertices[(i * 6) + 4] = 136 / 255.0f;
-            vertices[(i * 6) + 5] = 204 / 255.0f;
-        }
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         myBody.draw_leg(ourShader);
-
-        
-        // // 255, 255, 255
-        // for (int i = 0; i < 36; i++)
-        // {
-        //     vertices[(i * 6) + 3] = 1.0f;
-        //     vertices[(i * 6) + 4] = 1.0f;
-        //     vertices[(i * 6) + 5] = 1.0f;
-        // }
-        // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         // myBody.draw_wall(ourShader);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
