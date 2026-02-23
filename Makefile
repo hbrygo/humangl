@@ -1,4 +1,5 @@
 SRCS	=	src/main.cpp \
+			src/animation.cpp \
 			src/glad.c \
 
 OBJS	= ${SRCS:.cpp=.o}
