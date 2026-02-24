@@ -60,19 +60,19 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
 
     // down left
     point = cubePosition + glm::vec3(-1.0f, -1.0f, 0.0f);
-    attachmentPoints[point] = attachmentStates[4];
+    attachmentPoints[point] = attachmentStates[8];
 
     // down back
     point = cubePosition + glm::vec3(0.0f, -1.0f, -1.0f);
-    attachmentPoints[point] = attachmentStates[5];
+    attachmentPoints[point] = attachmentStates[9];
 
     // down right
     point = cubePosition + glm::vec3(1.0f, -1.0f, 0.0f);
-    attachmentPoints[point] = attachmentStates[6];
+    attachmentPoints[point] = attachmentStates[10];
 
     // down front
     point = cubePosition + glm::vec3(0.0f, -1.0f, 1.0f);
-    attachmentPoints[point] = attachmentStates[7];
+    attachmentPoints[point] = attachmentStates[11];
 
     return attachmentPoints;
 }
