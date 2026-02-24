@@ -171,13 +171,13 @@ inline vec3 cross(const vec3 &a, const vec3 &b) {
     );
 }
 
-// inline mat4 scale(const mat4& M, const vec3& v) {
-//     mat4 S(1.0f);
-//     S.data[0] = v.x;
-//     S.data[5] = v.y;
-//     S.data[10] = v.z;
-//     return M * S;
-// }
+inline mat4 scale(const mat4& M, const vec3& v) {
+    mat4 S(1.0f);
+    S.data[0] = v.x;
+    S.data[5] = v.y;
+    S.data[10] = v.z;
+    return M * S;
+}
 
 inline mat4 lookAt(const vec3 &cam, const vec3 &center, const vec3 &up) {
     vec3 f = normalize(center - cam);

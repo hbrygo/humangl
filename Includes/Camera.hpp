@@ -5,7 +5,7 @@
 
 class Camera {
     public:
-        enum Movement { FORWARD, BACKWARD, LEFT, RIGHT };
+        enum Movement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
 
         // ctor with vectors (stub - you will implement behavior)
         Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f),
@@ -14,7 +14,7 @@ class Camera {
             float pitch = 0.0f)
             : Position(position), Front(glm::vec3(0.0f, 0.0f, -1.0f)),
             Up(up), Right(glm::vec3(0.0f,0.0f,0.0f)), WorldUp(up),
-            Yaw(yaw), Pitch(pitch), MovementSpeed(2.5f), MouseSensitivity(0.1f), Zoom(45.0f)
+            Yaw(yaw), Pitch(pitch), MovementSpeed(4.5f), MouseSensitivity(0.1f), Zoom(45.0f)
         {
             updateCameraVectors();
         }
@@ -46,6 +46,14 @@ class Camera {
                 Position = glm::vec3(Position.x + Right.x * velocity,
                                      Position.y + Right.y * velocity,
                                      Position.z + Right.z * velocity);
+            if (direction == UP)
+                Position = glm::vec3(Position.x + WorldUp.x * velocity,
+                                     Position.y + WorldUp.y * velocity,
+                                     Position.z + WorldUp.z * velocity);
+            if (direction == DOWN)
+                Position = glm::vec3(Position.x - WorldUp.x * velocity,
+                                     Position.y - WorldUp.y * velocity,
+                                     Position.z - WorldUp.z * velocity);
         }
 
         void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true) {
