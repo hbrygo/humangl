@@ -1,7 +1,8 @@
 #include "include.hpp"
+#include "animation.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window, bool &pressOneTime);
+void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -282,6 +283,7 @@ int main()
     // render loop
     // -----------
     bool pressOneTime = false;
+    Animator animator;
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -291,7 +293,7 @@ int main()
 
         // input
         // -----
-        processInput(window, pressOneTime);
+        processInput(window, pressOneTime, animator);
 
         // render
         // ------
@@ -313,11 +315,9 @@ int main()
 
         // render boxes
         glBindVertexArray(VAO);
-        
-        myBody.draw_head(ourShader);
-        myBody.draw_arm(ourShader);
-        myBody.draw_body(ourShader);
-        myBody.draw_leg(ourShader);
+
+        animator.update(deltaTime);
+        animator.draw(ourShader, myBody);
         // myBody.draw_wall(ourShader);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -339,7 +339,7 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window, bool &pressOneTime)
+void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -367,6 +367,22 @@ void processInput(GLFWwindow *window, bool &pressOneTime)
     }
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE)
         pressOneTime = false;
+
+    static bool pressedAnimationKey = false;
+    if (!pressedAnimationKey) { //TODO : SIMPLIFIER LE BORDEL KEY_PRESSED/RELEASE EN 3-4 LIGNES OUI C'EST POSSIBLE MAIS FLEMME ATM
+        if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
+            animator.setState(NONE);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+            animator.setState(WAVING);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+            animator.setState(WALKING);
+            pressedAnimationKey = true;
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE)
+        pressedAnimationKey = false;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
