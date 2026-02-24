@@ -96,7 +96,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
     ourShader.setVec3("overrideColor", 1.0f, 187.0f/255.0f, 119.0f/255.0f);
     for (const auto& part : myBody.getParts()) {
         BodyPartType type = part.getPartType();
-        if (type != UPPER_ARM && type != LOWER_ARM)
+        if (type != LEFT_UPPER_ARM && type != LEFT_LOWER_ARM && type != RIGHT_UPPER_ARM && type != RIGHT_LOWER_ARM)
             continue;
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
@@ -104,6 +104,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
             applyPivotRotation(model, RIGHT_SHOULDER, a.rightArm, a.rightArmAxis, pos);
         else
             applyPivotRotation(model, LEFT_SHOULDER,  a.leftArm,  glm::vec3(1,0,0), pos);
+        model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
@@ -111,7 +112,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
     ourShader.setVec3("overrideColor", 0.0f, 136.0f/255.0f, 204.0f/255.0f);
     for (const auto& part : myBody.getParts()) {
         BodyPartType type = part.getPartType();
-        if (type != THIGH && type != LOWER_PART)
+        if (type != LEFT_THIGH && type != LEFT_LOWER_LEG && type != RIGHT_THIGH && type != RIGHT_LOWER_LEG)
             continue;
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
@@ -119,6 +120,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
             applyPivotRotation(model, LEFT_HIP,  a.leftLeg,  glm::vec3(1,0,0), pos);
         else
             applyPivotRotation(model, RIGHT_HIP, a.rightLeg, glm::vec3(1,0,0), pos);
+        model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }

@@ -15,6 +15,7 @@
 #include "Camera.hpp"
 #include <map>
 
+#define SIZE 1
 // Allow using glm::vec3 as key in ordered containers (std::map, std::set) by
 // providing a strict-weak-ordering comparator specialization for std::less.
 // This performs a lexicographic compare on (x, y, z).
@@ -34,10 +35,14 @@ namespace std {
 enum BodyPartType {
     HEAD,
     TORSO,
-    UPPER_ARM,
-    LOWER_ARM,
-    THIGH, // leg
-    LOWER_PART, // leg
+    LEFT_UPPER_ARM,
+    LEFT_LOWER_ARM,
+    RIGHT_UPPER_ARM,
+    RIGHT_LOWER_ARM,
+    LEFT_THIGH, // leg
+    RIGHT_THIGH, // leg
+    LEFT_LOWER_LEG, // leg
+    RIGHT_LOWER_LEG, // leg
     WALL
 };
 
@@ -49,10 +54,12 @@ class bodyPart {
         float z;
         glm::vec3 initialPosition;
         BodyPartType partType;
+        glm::vec3 scaleVec;
         // dans la map: 0 = plus proche du tronc -> 1 = plus loin
         // int none/fixe/mobile -> 0 = n'existe pas, 1 = fixe, 2 = mobile
         std::map<glm::vec3, int> attachmentPoints;
         float orientation;
+
         // angle de depart = 0
 
     public:
@@ -72,6 +79,11 @@ class bodyPart {
         int operator==(const bodyPart& other) const {
             return (partType == other.partType);
         }
+
+        glm::vec3 getScale() const { return scaleVec; }
+
+        // resize now updates the scale vector
+        void setSize(const glm::vec3 &newSize) { scaleVec = newSize; }
 };
 
 class body {
@@ -86,6 +98,33 @@ class body {
             return parts;
         }
 
+        std::map<glm::vec3, int> getAttachmentPoints(int type) const {
+            switch (type) {
+                case HEAD:
+                    return parts[0].getAttachmentPoints();
+                case TORSO:
+                    return parts[1].getAttachmentPoints();
+                case LEFT_UPPER_ARM:
+                    return parts[2].getAttachmentPoints();
+                case LEFT_LOWER_ARM:
+                    return parts[3].getAttachmentPoints();
+                case LEFT_THIGH:
+                    return parts[4].getAttachmentPoints();
+                case LEFT_LOWER_LEG:
+                    return parts[5].getAttachmentPoints();
+                case RIGHT_UPPER_ARM:
+                    return parts[6].getAttachmentPoints();
+                case RIGHT_LOWER_ARM:
+                    return parts[7].getAttachmentPoints();
+                case RIGHT_THIGH:
+                    return parts[8].getAttachmentPoints();
+                case RIGHT_LOWER_LEG:
+                    return parts[9].getAttachmentPoints();
+                default:
+                    return {};
+            }
+        }
+
         void draw_head(Shader& ourShader) {
             // set override color for head (skin tone)
             ourShader.setBool("useOverrideColor", true);
@@ -98,6 +137,7 @@ class body {
                     glm::vec3 position = {x, y, z};
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
+                    model = glm::scale(model, part.getScale());
 
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -124,7 +164,8 @@ class body {
                     glm::vec3 position = {x, y, z};
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
-                    
+                    model = glm::scale(model, part.getScale());
+
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -149,7 +190,8 @@ class body {
                     glm::vec3 position = {x, y, z};
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
-                    
+                    model = glm::scale(model, part.getScale());
+
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -169,14 +211,15 @@ class body {
             BodyPartType bodyPart;
             for (const auto& part : parts) {
                 bodyPart = part.getPartType();
-                if (bodyPart == BodyPartType::UPPER_ARM || bodyPart == BodyPartType::LOWER_ARM) {
+                if (bodyPart == BodyPartType::LEFT_UPPER_ARM || bodyPart == BodyPartType::LEFT_LOWER_ARM  || bodyPart == BodyPartType::RIGHT_UPPER_ARM || bodyPart == BodyPartType::RIGHT_LOWER_ARM) {
                     float x = part.getX();
                     float y = part.getY();
                     float z = part.getZ();
                     glm::vec3 position = {x, y, z};
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
-                    
+                    model = glm::scale(model, part.getScale());
+
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -196,14 +239,15 @@ class body {
             BodyPartType bodyPart;
             for (const auto& part : parts) {
                 bodyPart = part.getPartType();
-                if (bodyPart == BodyPartType::THIGH || bodyPart == BodyPartType::LOWER_PART) {
+                if (bodyPart == BodyPartType::LEFT_THIGH || bodyPart == BodyPartType::LEFT_LOWER_LEG || bodyPart == BodyPartType::RIGHT_THIGH || bodyPart == BodyPartType::RIGHT_LOWER_LEG) {
                     float x = part.getX();
                     float y = part.getY();
                     float z = part.getZ();
                     glm::vec3 position = {x, y, z};
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
-                    
+                    model = glm::scale(model, part.getScale());
+
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
