@@ -108,13 +108,13 @@ class body {
                     return parts[2].getAttachmentPoints();
                 case LEFT_LOWER_ARM:
                     return parts[3].getAttachmentPoints();
-                case LEFT_THIGH:
-                    return parts[4].getAttachmentPoints();
-                case LEFT_LOWER_LEG:
-                    return parts[5].getAttachmentPoints();
                 case RIGHT_UPPER_ARM:
-                    return parts[6].getAttachmentPoints();
+                    return parts[4].getAttachmentPoints();
                 case RIGHT_LOWER_ARM:
+                    return parts[5].getAttachmentPoints();
+                case LEFT_THIGH:
+                    return parts[6].getAttachmentPoints();
+                case LEFT_LOWER_LEG:
                     return parts[7].getAttachmentPoints();
                 case RIGHT_THIGH:
                     return parts[8].getAttachmentPoints();
@@ -138,7 +138,6 @@ class body {
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
                     model = glm::scale(model, part.getScale());
-
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -165,7 +164,6 @@ class body {
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
                     model = glm::scale(model, part.getScale());
-
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -191,7 +189,6 @@ class body {
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
                     model = glm::scale(model, part.getScale());
-
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -219,7 +216,6 @@ class body {
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
                     model = glm::scale(model, part.getScale());
-
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {
@@ -247,7 +243,6 @@ class body {
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
                     model = glm::scale(model, part.getScale());
-
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                     {

@@ -4,17 +4,38 @@
 
 struct AnimAngles
 {
-    float rightArm = 0.0f;
-    float leftArm  = 0.0f;
-    float rightLeg = 0.0f;
-    float leftLeg  = 0.0f;
+    float rightArm  = 0.0f;
+    float leftArm   = 0.0f;
+    float rightLeg  = 0.0f;
+    float leftLeg   = 0.0f;
+    float rightKnee = 0.0f;
+    float leftKnee  = 0.0f;
     glm::vec3 rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
 };
 
-static const glm::vec3 RIGHT_SHOULDER(1.5f, -0.5f, 0.0f);
-static const glm::vec3 LEFT_SHOULDER(-1.5f, -0.5f, 0.0f);
-static const glm::vec3 LEFT_HIP(-0.5f, -2.5f, 0.0f);
-static const glm::vec3 RIGHT_HIP(0.5f, -2.5f, 0.0f);
+// Compute the pivot point for a body part from its actual center and scale.
+// proximal=true  → top of part (shoulder / hip)
+// proximal=false → bottom of part (elbow / knee)
+// For upper-arm parts the pivot x is the inner edge (torso-facing side);
+// for all other parts it is the part center x.
+static glm::vec3 getPivotPoint(const body& myBody, int partType, bool proximal)
+{
+    for (const auto& part : myBody.getParts())
+    {
+        if (part.getPartType() != static_cast<BodyPartType>(partType)) continue;
+        float px    = part.getX();
+        float py    = part.getY();
+        glm::vec3 s = part.getScale();
+        float pivotY = proximal ? py + s.y * 0.5f : py - s.y * 0.5f;
+        float pivotX;
+        if (partType == LEFT_UPPER_ARM || partType == RIGHT_UPPER_ARM)
+            pivotX = px - (px > 0.0f ? 1.0f : -1.0f) * s.x * 0.5f;
+        else
+            pivotX = px;
+        return glm::vec3(pivotX, pivotY, 0.0f);
+    }
+    return glm::vec3(0.0f, 0.0f, 0.0f);
+}
 
 
 static AnimAngles anim_waving(float t)
@@ -30,10 +51,13 @@ static AnimAngles anim_walking(float t)
 {
     AnimAngles a;
     float swing = std::sin(t * 4.0f);
-    a.leftLeg  =  glm::radians(35.0f * swing);
-    a.rightLeg = -glm::radians(35.0f * swing);
-    a.leftArm  = -glm::radians(25.0f * swing);
-    a.rightArm =  glm::radians(25.0f * swing);
+    a.leftLeg   =  glm::radians(35.0f * swing);
+    a.rightLeg  = -glm::radians(35.0f * swing);
+    a.leftArm   = -glm::radians(25.0f * swing);
+    a.rightArm  =  glm::radians(25.0f * swing);
+    // knee bends when the leg is in the push-off phase (moving backward)
+    a.leftKnee  = glm::radians(30.0f) * std::max(0.0f, -swing);
+    a.rightKnee = glm::radians(30.0f) * std::max(0.0f,  swing);
     return a;
 }
 
@@ -51,6 +75,23 @@ static AnimAngles getAnimAngles(int state, float t)
     }
 }
 
+
+// Two-joint hierarchical rotation: hip rotation followed by knee bend.
+// The lower leg first rotates around the knee (in rest space) then the
+// whole assembly rotates around the hip, matching a proper joint chain.
+static void applyKneeRotation(glm::mat4& model,
+                               const glm::vec3& hip, float hipAngle,
+                               const glm::vec3& knee, float kneeAngle,
+                               const glm::vec3& partPos)
+{
+    const glm::vec3 axis(1.0f, 0.0f, 0.0f);
+    model = glm::translate(model, hip);
+    model = glm::rotate(model, hipAngle, axis);
+    model = glm::translate(model, knee - hip);
+    model = glm::rotate(model, kneeAngle, axis);
+    model = glm::translate(model, glm::vec3(-knee.x, -knee.y, -knee.z));
+    model = glm::translate(model, partPos);
+}
 
 static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float angle, const glm::vec3& axis, const glm::vec3& partPos)
 {
@@ -83,6 +124,14 @@ void Animator::draw(Shader& ourShader, body& myBody)
 {
     const AnimAngles a = getAnimAngles(_state, _time);
 
+    // Derive joint pivots from part center + scale (attachment offsets don't account for scaling).
+    const glm::vec3 leftShoulder  = getPivotPoint(myBody, LEFT_UPPER_ARM,  true);
+    const glm::vec3 rightShoulder = getPivotPoint(myBody, RIGHT_UPPER_ARM, true);
+    const glm::vec3 leftHip       = getPivotPoint(myBody, LEFT_THIGH,      true);
+    const glm::vec3 rightHip      = getPivotPoint(myBody, RIGHT_THIGH,     true);
+    const glm::vec3 leftKnee      = getPivotPoint(myBody, LEFT_THIGH,      false);
+    const glm::vec3 rightKnee     = getPivotPoint(myBody, RIGHT_THIGH,     false);
+
     myBody.draw_head(ourShader);
     myBody.draw_body(ourShader);
     if (_state == NONE) {
@@ -101,9 +150,9 @@ void Animator::draw(Shader& ourShader, body& myBody)
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
         if (pos.x > 0.0f)
-            applyPivotRotation(model, RIGHT_SHOULDER, a.rightArm, a.rightArmAxis, pos);
+            applyPivotRotation(model, rightShoulder, a.rightArm, a.rightArmAxis, pos);
         else
-            applyPivotRotation(model, LEFT_SHOULDER,  a.leftArm,  glm::vec3(1,0,0), pos);
+            applyPivotRotation(model, leftShoulder,  a.leftArm,  glm::vec3(1,0,0), pos);
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -116,10 +165,23 @@ void Animator::draw(Shader& ourShader, body& myBody)
             continue;
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
-        if (pos.x < 0.0f)
-            applyPivotRotation(model, LEFT_HIP,  a.leftLeg,  glm::vec3(1,0,0), pos);
+        bool isLeft = (pos.x < 0.0f);
+        if (type == LEFT_THIGH || type == RIGHT_THIGH)
+        {
+            // thigh: simple rotation around the hip
+            if (isLeft)
+                applyPivotRotation(model, leftHip,  a.leftLeg,  glm::vec3(1,0,0), pos);
+            else
+                applyPivotRotation(model, rightHip, a.rightLeg, glm::vec3(1,0,0), pos);
+        }
         else
-            applyPivotRotation(model, RIGHT_HIP, a.rightLeg, glm::vec3(1,0,0), pos);
+        {
+            // lower leg: hip rotation + additional knee bend
+            if (isLeft)
+                applyKneeRotation(model, leftHip,  a.leftLeg,  leftKnee,  a.leftKnee,  pos);
+            else
+                applyKneeRotation(model, rightHip, a.rightLeg, rightKnee, a.rightKnee, pos);
+        }
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
