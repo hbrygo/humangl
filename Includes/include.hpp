@@ -140,14 +140,39 @@ class body {
                     model = glm::scale(model, part.getScale());
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
-                    {
-                        GLenum _err = glGetError();
-                        if (_err != GL_NO_ERROR)
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
                         std::cout << "GL error after draw: " << _err << std::endl;
-                    }
                 }
             }
-            // disable override so other draws use vertex colors unless they enable their own override
+            /******************************************************** */
+            /*              dessine les arretes en rouge              */
+            /******************************************************** */
+            ourShader.setVec3("overrideColor", 255.0f, 0.0f, 0.0f);
+            glLineWidth(2.0f);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0f, -1.0f);
+            for (const auto& part : parts)
+            {
+                if (part.getPartType() == BodyPartType::HEAD)
+                {
+                    glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, position);
+                    model = glm::scale(model, part.getScale());
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw (edges): " << _err << std::endl;
+                }
+            }
+            // restore state
+            glDisable(GL_POLYGON_OFFSET_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            /******************************************************** */
+
             ourShader.setBool("useOverrideColor", false);
         }
 
@@ -173,6 +198,34 @@ class body {
                     }
                 }
             }
+
+            /******************************************************** */
+            /*              dessine les arretes en rouge              */
+            /******************************************************** */
+            ourShader.setVec3("overrideColor", 255.0f, 0.0f, 0.0f);
+            glLineWidth(2.0f);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0f, -1.0f);
+            for (const auto &part : parts)
+            {
+                if (part.getPartType() == BodyPartType::TORSO) {
+                    glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, position);
+                    model = glm::scale(model, part.getScale());
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw (edges): " << _err << std::endl;
+                }
+            }
+            // restore state
+            glDisable(GL_POLYGON_OFFSET_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            /******************************************************** */
+
             ourShader.setBool("useOverrideColor", false);
         }
         
@@ -198,6 +251,34 @@ class body {
                     }
                 }
             }
+
+            /******************************************************** */
+            /*              dessine les arretes en rouge              */
+            /******************************************************** */
+            ourShader.setVec3("overrideColor", 255.0f, 0.0f, 0.0f);
+            glLineWidth(2.0f);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0f, -1.0f);
+            for (const auto &part : parts)
+            {
+                if (part.getPartType() == BodyPartType::WALL) {
+                    glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, position);
+                    model = glm::scale(model, part.getScale());
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw (edges): " << _err << std::endl;
+                }
+            }
+            // restore state
+            glDisable(GL_POLYGON_OFFSET_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            /******************************************************** */
+
             ourShader.setBool("useOverrideColor", false);
         }
         
@@ -225,6 +306,34 @@ class body {
                     }
                 }
             }
+
+            /******************************************************** */
+            /*              dessine les arretes en rouge              */
+            /******************************************************** */
+            ourShader.setVec3("overrideColor", 255.0f, 0.0f, 0.0f);
+            glLineWidth(2.0f);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0f, -1.0f);
+            for (const auto &part : parts)
+            {
+                if (bodyPart == BodyPartType::LEFT_UPPER_ARM || bodyPart == BodyPartType::LEFT_LOWER_ARM  || bodyPart == BodyPartType::RIGHT_UPPER_ARM || bodyPart == BodyPartType::RIGHT_LOWER_ARM) {
+                    glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, position);
+                    model = glm::scale(model, part.getScale());
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw (edges): " << _err << std::endl;
+                }
+            }
+            // restore state
+            glDisable(GL_POLYGON_OFFSET_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            /******************************************************** */
+
             ourShader.setBool("useOverrideColor", false);
         }
         
@@ -245,13 +354,41 @@ class body {
                     model = glm::scale(model, part.getScale());
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw: " << _err << std::endl;
+                }
+            }
+
+            /******************************************************** */
+            /*              dessine les arretes en rouge              */
+            /******************************************************** */
+            ourShader.setVec3("overrideColor", 255.0f, 0.0f, 0.0f);
+            glLineWidth(2.0f);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0f, -1.0f);
+            for (const auto &part : parts)
+            {
+                if (bodyPart == BodyPartType::LEFT_THIGH || bodyPart == BodyPartType::LEFT_LOWER_LEG || bodyPart == BodyPartType::RIGHT_THIGH || bodyPart == BodyPartType::RIGHT_LOWER_LEG) {
                     {
+                        glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
+                        glm::mat4 model = glm::mat4(1.0f);
+                        model = glm::translate(model, position);
+                        model = glm::scale(model, part.getScale());
+                        ourShader.setMat4("model", model);
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
                         GLenum _err = glGetError();
                         if (_err != GL_NO_ERROR)
-                            std::cout << "GL error after draw: " << _err << std::endl;
+                            std::cout << "GL error after draw (edges): " << _err << std::endl;
                     }
                 }
             }
+            // restore state
+            glDisable(GL_POLYGON_OFFSET_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            /******************************************************** */
+
             ourShader.setBool("useOverrideColor", false);
         }
 };
