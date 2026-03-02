@@ -8,6 +8,7 @@ enum Animations //ajouter des animations pour avoir 10 int (0-9)
     NONE,
     WAVING,
     WALKING,
+    JUMPING,
 };
 
 class Animator
