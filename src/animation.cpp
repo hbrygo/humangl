@@ -650,6 +650,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
         return;
     }
     
+    myBody.draw_cap(ourShader);
     ourShader.setBool("useOverrideColor", true);
 
     // ---- CAP / VISIERE ----
