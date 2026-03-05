@@ -3,135 +3,107 @@
 
 #include "glm.hpp"
 
-class Camera {
-    public:
-        enum Movement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
+#define RADIUS 20.0f
+#define PITCH 0.0f
+#define YAW 90.0f
+#define SPEED 60.0f
+#define ZOOM 45.0f
+#define WORLD_UP glm::vec3(0.0f, 1.0f, 0.0f)
 
-        // ctor with vectors (stub - you will implement behavior)
-        Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f),
-            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-            float yaw = -90.0f,
-            float pitch = 0.0f)
-            : Position(position), Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-            Up(up), Right(glm::vec3(0.0f,0.0f,0.0f)), WorldUp(up),
-            Yaw(yaw), Pitch(pitch), MovementSpeed(4.5f), MouseSensitivity(0.1f), Zoom(45.0f)
+
+class Camera
+{
+    public:
+        glm::vec3 position;
+        glm::vec3 target;
+        glm::vec3 front;
+        glm::vec3 up;
+        glm::vec3 right;
+        glm::vec3 worldup;
+
+        float radius;
+        float yaw;
+        float pitch;
+
+        float speed;
+        float zoom;
+
+        enum Movement { ORBIT_LEFT, ORBIT_RIGHT, ORBIT_UP, ORBIT_DOWN };
+
+        Camera(glm::vec3 target): target(target), worldup(WORLD_UP), radius(RADIUS), yaw(YAW), pitch(PITCH), speed(SPEED), zoom(ZOOM)
         {
             updateCameraVectors();
         }
 
-        // returns the view matrix (stub)
-        glm::mat4 GetViewMatrix() const {
-            glm::mat4 view = glm::lookAt(Position, Position + Front, Up);
-
-            return view;
+        glm::mat4 GetViewMatrix() const
+        {
+            return glm::lookAt(position, target, up);
         }
 
-        // input processing (stubs)
-        void ProcessKeyboard(Movement direction, float deltaTime) {
-            // std::cout << "In ProcessKeyboard -> Camera position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")" << std::endl;
-            float velocity = MovementSpeed * deltaTime;
-            if (direction == FORWARD)
-                Position = glm::vec3(Position.x + Front.x * velocity,
-                                     Position.y + Front.y * velocity,
-                                     Position.z + Front.z * velocity);
-            if (direction == BACKWARD)
-                Position = glm::vec3(Position.x - Front.x * velocity,
-                                     Position.y - Front.y * velocity,
-                                     Position.z - Front.z * velocity);
-            if (direction == LEFT)
-                Position = glm::vec3(Position.x - Right.x * velocity,
-                                     Position.y - Right.y * velocity,
-                                     Position.z - Right.z * velocity);
-            if (direction == RIGHT)
-                Position = glm::vec3(Position.x + Right.x * velocity,
-                                     Position.y + Right.y * velocity,
-                                     Position.z + Right.z * velocity);
-            if (direction == UP)
-                Position = glm::vec3(Position.x + WorldUp.x * velocity,
-                                     Position.y + WorldUp.y * velocity,
-                                     Position.z + WorldUp.z * velocity);
-            if (direction == DOWN)
-                Position = glm::vec3(Position.x - WorldUp.x * velocity,
-                                     Position.y - WorldUp.y * velocity,
-                                     Position.z - WorldUp.z * velocity);
-        }
+        void ProcessKeyboard(Movement direction, float deltaTime)
+        {
+            float angle = speed * deltaTime;
+            if (direction == ORBIT_LEFT)
+                yaw -= angle;
+            if (direction == ORBIT_RIGHT)
+                yaw += angle;
+            if (direction == ORBIT_UP)
+                pitch += angle;
+            if (direction == ORBIT_DOWN)
+                pitch -= angle;
+            if (pitch > 89.0f)
+                pitch = 89.0f;
+            if (pitch < -89.0f)
+                pitch = -89.0f;
 
-        void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true) {
-            xoffset *= MouseSensitivity;
-            yoffset *= MouseSensitivity;
-
-            Yaw   += xoffset;
-            Pitch += yoffset;
-
-            // make sure that when pitch is out of bounds, screen doesn't get flipped
-            if (constrainPitch)
-            {
-                if (Pitch > 89.0f)
-                    Pitch = 89.0f;
-                if (Pitch < -89.0f)
-                    Pitch = -89.0f;
-            }
-
-            // std::cout << "Before -> Camera position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")" << std::endl;
-            // update Front, Right and Up Vectors using the updated Euler angles
             updateCameraVectors();
-            // std::cout << "After -> Camera position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")" << std::endl;
         }
 
-        void ProcessMouseScroll(float yoffset) {
-            Zoom -= yoffset;
-            if (Zoom < 1.0f)
-                Zoom = 1.0f;
-            if (Zoom > 45.0f)
-                Zoom = 45.0f; 
+        void ProcessMouseScroll(float yoffset)
+        {
+            radius -= yoffset;
+            if (radius <  1.0f)
+                radius =  1.0f;
+            if (radius > 50.0f)
+                radius = 50.0f;
+            updateCameraVectors();
         }
 
-        // camera attributes
-        glm::vec3 Position;
-        glm::vec3 Front;
-        glm::vec3 Up;
-        glm::vec3 Right;
-        glm::vec3 WorldUp;
-
-        // euler angles
-        float Yaw;
-        float Pitch;
-
-        // camera options
-        float MovementSpeed;
-        float MouseSensitivity;
-        float Zoom;
 
     private:
-        void updateCameraVectors() {
-            // calculate the new Front vector
-            float yawRad = Yaw * (PI / 180.0f);
-            float pitchRad = Pitch * (PI / 180.0f);
-            glm::vec3 front;
-            front.x = std::cos(yawRad) * std::cos(pitchRad);
-            front.y = std::sin(pitchRad);
-            front.z = std::sin(yawRad) * std::cos(pitchRad);
-            // normalize front
-            float len = std::sqrt(front.x*front.x + front.y*front.y + front.z*front.z);
-            if (len > 0.0f) { front.x /= len; front.y /= len; front.z /= len; }
-            Front = front;
-            // also re-calculate the Right and Up vector
-            // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+        void updateCameraVectors()
+        {
+            float yawRad   = yaw   * (PI / 180.0f);
+            float pitchRad = pitch * (PI / 180.0f);
+
+            glm::vec3 offset;
+            offset.x = radius * std::cos(pitchRad) * std::cos(yawRad);
+            offset.y = radius * std::sin(pitchRad);
+            offset.z = radius * std::cos(pitchRad) * std::sin(yawRad);
+
+            position = glm::vec3(target.x + offset.x,
+                                 target.y + offset.y,
+                                 target.z + offset.z);
+
+            float len = std::sqrt(offset.x*offset.x + offset.y*offset.y + offset.z*offset.z);
+            if (len > 0.0f)
+                front = glm::vec3(-offset.x / len, -offset.y / len, -offset.z / len);
+
             glm::vec3 right;
-            right.x = Front.y * WorldUp.z - Front.z * WorldUp.y;
-            right.y = Front.z * WorldUp.x - Front.x * WorldUp.z;
-            right.z = Front.x * WorldUp.y - Front.y * WorldUp.x;
+            right.x = front.y * worldup.z - front.z * worldup.y;
+            right.y = front.z * worldup.x - front.x * worldup.z;
+            right.z = front.x * worldup.y - front.y * worldup.x;
             len = std::sqrt(right.x*right.x + right.y*right.y + right.z*right.z);
             if (len > 0.0f) { right.x /= len; right.y /= len; right.z /= len; }
-            Right = right;
+            this->right = right;
 
             glm::vec3 up;
-            up.x = Right.y * Front.z - Right.z * Front.y;
-            up.y = Right.z * Front.x - Right.x * Front.z;
-            up.z = Right.x * Front.y - Right.y * Front.x;
+            up.x = right.y * front.z - right.z * front.y;
+            up.y = right.z * front.x - right.x * front.z;
+            up.z = right.x * front.y - right.y * front.x;
             len = std::sqrt(up.x*up.x + up.y*up.y + up.z*up.z);
             if (len > 0.0f) { up.x /= len; up.y /= len; up.z /= len; }
-            Up = up;
+            this->up = up;
         }
 };
 
