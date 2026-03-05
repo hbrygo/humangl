@@ -1,5 +1,6 @@
 #include "include.hpp"
 #include "animation.hpp"
+#include <thread>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator);
@@ -42,12 +43,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, 1.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[3];
 
-    // left front
-    point = cubePosition + glm::vec3(-1.0f, 0.0f, 1.0f);
-    attachmentPoints[point] = attachmentStates[4];
-
-    // left back
-    point = cubePosition + glm::vec3(-1.0f, 0.0f, -1.0f);
+    // left frontminiaudio
     attachmentPoints[point] = attachmentStates[5];
 
     // right back
@@ -75,6 +71,24 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     attachmentPoints[point] = attachmentStates[11];
 
     return attachmentPoints;
+}
+
+int playSong(const char *filename) {
+    ma_result result;
+    ma_engine engine;
+
+    result = ma_engine_init(NULL, &engine);
+    if (result != MA_SUCCESS)
+        return -1;
+
+    ma_engine_play_sound(&engine, filename, NULL);
+
+    printf("Press Enter to quit...");
+    getchar();
+
+    ma_engine_uninit(&engine);
+
+    return 0;
 }
 
 int main()
@@ -315,6 +329,7 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    std::thread(playSong, "miniaudio/DANS_LA_RUE.mp3").detach();
 
     // render loop
     // -----------

@@ -13,6 +13,7 @@
 #include "FileSystem.hpp"
 #include "stb_image.h"
 #include "Camera.hpp"
+#include "miniaudio.h"
 #include <map>
 
 #define SIZE 1
