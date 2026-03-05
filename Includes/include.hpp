@@ -45,7 +45,8 @@ enum BodyPartType {
     LEFT_LOWER_LEG, // leg
     RIGHT_LOWER_LEG, // leg
     WALL,
-    CAP
+    CAP,
+    VISIERE
 };
 
 class bodyPart {
@@ -127,6 +128,34 @@ class body {
                 default:
                     return {};
             }
+        }
+
+        void draw_cap(Shader& ourShader) {
+            // set override color for cap (red)
+            ourShader.setBool("useOverrideColor", true);
+            for (const auto &part : parts)
+            {
+                if (part.getPartType() == BodyPartType::VISIERE || part.getPartType() == BodyPartType::CAP)
+                {
+                    float x = part.getX();
+                    float y = part.getY();
+                    float z = part.getZ();
+                    glm::vec3 position = {x, y, z};
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, position);
+                    model = glm::scale(model, part.getScale());
+                    if (part.getPartType() == BodyPartType::CAP)
+                        ourShader.setVec3("overrideColor", 0.0f, 0.0f, 0.0f);
+                    else if (part.getPartType() == BodyPartType::VISIERE)
+                        ourShader.setVec3("overrideColor", 1.0f, 0.0f, 0.0f);
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    GLenum _err = glGetError();
+                    if (_err != GL_NO_ERROR)
+                        std::cout << "GL error after draw: " << _err << std::endl;
+                }
+            }
+            ourShader.setBool("useOverrideColor", false);
         }
 
         void draw_head(Shader& ourShader) {

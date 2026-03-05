@@ -224,6 +224,8 @@ int main()
     glm::vec3 rightThighCenter = {leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
     glm::vec3 leftLowerLegCenter = {leftThighCenter.x, leftThighCenter.y - (leg_half + leg_half), 0.0f};
     glm::vec3 rightLowerLegCenter = {rightThighCenter.x, rightThighCenter.y - (leg_half + leg_half), 0.0f};
+    glm::vec3 cap = {0.0f, headCenter.y - (head_half + 0.5f * BASE), 0.0f};
+    glm::vec3 visiere = {0.0f, headCenter.y - (head_half + 0.5f * BASE), 0.0f};
 
     // create parts with computed positions and sizes
     std::map<glm::vec3, int> attachmentPoints;
@@ -287,6 +289,17 @@ int main()
                                                                  0, 0, 0, 0});
     bodyPart rightLeg2(rightLowerLegCenter.x, rightLowerLegCenter.y, rightLowerLegCenter.z, BodyPartType::RIGHT_LOWER_LEG, attachmentPoints);
     rightLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+    
+    attachmentPoints = setAtachementPoints(cap, {0, 0, 0, 0,
+                                                                 0, 0, 0, 0,
+                                                                 0, 0, 0, 2});
+    bodyPart capPart(cap.x, cap.y, cap.z, BodyPartType::CAP, attachmentPoints);
+    capPart.setSize(glm::vec3(BASE, HEAD_SCALE * BASE, BASE));
+    attachmentPoints = setAtachementPoints(visiere, {0, 0, 0, 0,
+                                                                 0, 0, 0, 0,
+                                                                 0, 0, 0, 2});
+    bodyPart visierePart(visiere.x, visiere.y, visiere.z, BodyPartType::VISIERE, attachmentPoints);
+    visierePart.setSize(glm::vec3(BASE, HEAD_SCALE * BASE, BASE));
 
     // add to body
     myBody.addPart(head);
@@ -299,6 +312,8 @@ int main()
     myBody.addPart(leftLeg2);
     myBody.addPart(rightLeg1);
     myBody.addPart(rightLeg2);
+    myBody.addPart(capPart);
+    myBody.addPart(visierePart);
 
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
