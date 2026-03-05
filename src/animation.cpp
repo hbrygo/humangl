@@ -166,7 +166,7 @@ static AnimAngles anim_jumping(float t)
     a.leftElbow = elbowAngle;
     a.rightElbow = elbowAngle;
     a.torsoAngle = torsoAngle;
-    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f); //to patch
     a.rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     return a;
 }
@@ -176,6 +176,7 @@ static AnimAngles anim_walking(float t)
 {
     AnimAngles a;
     float swing = std::sin(t * 4.0f);
+    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f); // to patch
     a.leftLeg = glm::radians(35.0f * swing);
     a.rightLeg = -glm::radians(35.0f * swing);
     a.leftArm = -glm::radians(15.0f * swing);
