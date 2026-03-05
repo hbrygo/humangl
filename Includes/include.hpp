@@ -121,6 +121,8 @@ class body {
                     return parts[8].getAttachmentPoints();
                 case RIGHT_LOWER_LEG:
                     return parts[9].getAttachmentPoints();
+                case CAP:
+                    return parts[10].getAttachmentPoints();
                 default:
                     return {};
             }
