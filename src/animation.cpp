@@ -242,8 +242,7 @@ static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float a
 }
 
 
-Animator::Animator() : _state(NONE), _time(0.0f) {}
-
+Animator::Animator() : _state(NONE), _time(0.0f), _pid(0) {}
 
 void Animator::setState(Animations state)
 {
@@ -251,6 +250,15 @@ void Animator::setState(Animations state)
     _time  = 0.0f;
 }
 
+void Animator::setPID(int pid)
+{
+    _pid = pid;
+}
+
+int Animator::getPID() const
+{
+    return _pid;
+}
 
 void Animator::update(float deltaTime)
 {

@@ -22,10 +22,13 @@ class Animator
     private:
         int   _state;
         float _time;
+        int _pid;
 
     public:
         Animator();
         void setState(Animations state);
+        void setPID(int pid);
+        int getPID() const;
         void update(float deltaTime);
         void draw(Shader& shader, body& myBody);
 };

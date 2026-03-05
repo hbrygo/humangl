@@ -33,6 +33,13 @@ namespace std {
     };
 }
 
+enum MusiqueState
+{
+    MUSIQUE_STOP = 0,
+    MUSIQUE_DANS_LA_RUE,
+    MUSIQUE_ULTIMATE,
+};
+
 enum BodyPartType {
     HEAD,
     TORSO,
@@ -425,5 +432,7 @@ class body {
             ourShader.setBool("useOverrideColor", false);
         }
 };
+
+int playSong(const char *filename);
 
 #endif
