@@ -7,8 +7,14 @@ enum Animations //ajouter des animations pour avoir 10 int (0-9)
 {
     NONE,
     WAVING,
-    WALKING,
+    WALKING, //vald - dans la rue
     JUMPING,
+    T_POSE, // denzel curry - ultimate
+    NARUTO_RUN, // Naruto - Run
+    GANGNAM_STYLE, // PSY - Gangnam Style
+    EAGLE_FLIGHT, // AIGLES QUI HURLENT FORT MURICAAAAAAAA
+    MJ_PENCHING, // Michael Jackson - Billie Jean
+    HARDBASS_ROBLOX, // titre
 };
 
 class Animator
