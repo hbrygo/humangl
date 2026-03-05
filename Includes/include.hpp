@@ -16,7 +16,7 @@
 #include "miniaudio.h"
 #include <map>
 
-#define SIZE 1
+#define SIZE 3
 // Allow using glm::vec3 as key in ordered containers (std::map, std::set) by
 // providing a strict-weak-ordering comparator specialization for std::less.
 // This performs a lexicographic compare on (x, y, z).

@@ -286,9 +286,11 @@ void Animator::draw(Shader& ourShader, body& myBody)
         myBody.draw_body(ourShader);
         myBody.draw_arm(ourShader);
         myBody.draw_leg(ourShader);
+        myBody.draw_cap(ourShader);
         return;
     }
-
+    
+    myBody.draw_cap(ourShader);
     ourShader.setBool("useOverrideColor", true);
 
     // ---- HEAD ----

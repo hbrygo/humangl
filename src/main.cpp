@@ -195,7 +195,7 @@ int main()
     const float LEG_SCALE = 2.0f;   // "jambe = 2"
     const float BASE = float(SIZE); // unit cube size
     // half extents of each part (world units)
-    const float head_half = 0.5f * HEAD_SCALE * BASE;
+    const float head_half = (0.5f * HEAD_SCALE * BASE) - (BASE / 4);
     const float torso_half = 0.5f * TORSO_SCALE * BASE;
     const float arm_half = 0.5f * ARM_SCALE * BASE;
     const float leg_half = 0.5f * LEG_SCALE * BASE;
@@ -224,8 +224,8 @@ int main()
     glm::vec3 rightThighCenter = {leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
     glm::vec3 leftLowerLegCenter = {leftThighCenter.x, leftThighCenter.y - (leg_half + leg_half), 0.0f};
     glm::vec3 rightLowerLegCenter = {rightThighCenter.x, rightThighCenter.y - (leg_half + leg_half), 0.0f};
-    glm::vec3 cap = {0.0f, headCenter.y - (head_half + 0.5f * BASE), 0.0f};
-    glm::vec3 visiere = {0.0f, headCenter.y - (head_half + 0.5f * BASE), 0.0f};
+    glm::vec3 cap = {0.0f, headCenter.y + (BASE / 2), 0.0f};
+    glm::vec3 visiere = {0.0f, headCenter.y + (BASE / 4), BASE - (BASE / 4)};
 
     // create parts with computed positions and sizes
     std::map<glm::vec3, int> attachmentPoints;
@@ -234,7 +234,7 @@ int main()
                                                         0, 0, 0, 0,
                                                         0, 0, 0, 2});
     bodyPart head(headCenter.x, headCenter.y, headCenter.z, BodyPartType::HEAD, attachmentPoints);
-    head.setSize(glm::vec3(HEAD_SCALE * BASE, BASE, BASE));
+    head.setSize(glm::vec3(HEAD_SCALE * BASE, BASE / 2, BASE));
 
     attachmentPoints = setAtachementPoints(torsoCenter, {2, 0, 2, 2,
                                                          0, 0, 0, 0,
@@ -292,14 +292,14 @@ int main()
     
     attachmentPoints = setAtachementPoints(cap, {0, 0, 0, 0,
                                                                  0, 0, 0, 0,
-                                                                 0, 0, 0, 2});
+                                                                 1, 1, 1, 1});
     bodyPart capPart(cap.x, cap.y, cap.z, BodyPartType::CAP, attachmentPoints);
-    capPart.setSize(glm::vec3(BASE, HEAD_SCALE * BASE, BASE));
-    attachmentPoints = setAtachementPoints(visiere, {0, 0, 0, 0,
-                                                                 0, 0, 0, 0,
-                                                                 0, 0, 0, 2});
+    capPart.setSize(glm::vec3(BASE, HEAD_SCALE * (BASE / 2), BASE));
+    attachmentPoints = setAtachementPoints(visiere, {1, 0, 0, 0,
+                                                                 1, 1, 0, 0,
+                                                                 1, 0, 0, 0});
     bodyPart visierePart(visiere.x, visiere.y, visiere.z, BodyPartType::VISIERE, attachmentPoints);
-    visierePart.setSize(glm::vec3(BASE, HEAD_SCALE * BASE, BASE));
+    visierePart.setSize(glm::vec3(BASE, 0.1f, BASE / 2));
 
     // add to body
     myBody.addPart(head);
@@ -336,8 +336,6 @@ int main()
     // color attribute (location = 1)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    std::thread(playSong, "miniaudio/DANS_LA_RUE.mp3").detach();
 
     // render loop
     // -----------
