@@ -466,6 +466,7 @@ void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musi
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // Orbit camera: A/← orbit left, D/→ orbit right, W/↑ orbit up, S/↓ orbit down.
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboard(Camera::ORBIT_LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
@@ -537,6 +538,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    // Camera is now orbited with keys; mouse movement is unused.
+    (void)window; (void)xpos; (void)ypos;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

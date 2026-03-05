@@ -197,6 +197,32 @@ static AnimAngles anim_waving(float t)
 }
 
 
+static float clampUnit(float x)
+{
+    if (x < 0.f)
+        return 0.f;
+    if (x > 1.f)
+        return 1.f;
+    return x;
+}
+
+// courbe cubique
+static float easeInOut(float x)
+{
+    return x * x * (3.0f - 2.0f * x);
+}
+
+static float linearInterp(float a, float b, float s)
+{
+    return a + (b - a) * s;
+}
+
+static float phaseProgress(float p, float start, float end)
+{
+    float t = (p - start) / (end - start);
+    return easeInOut(clampUnit(t));
+}
+
 static AnimAngles anim_jumping(float t)
 {
     AnimAngles a;
