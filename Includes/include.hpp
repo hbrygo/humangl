@@ -43,7 +43,8 @@ enum BodyPartType {
     RIGHT_THIGH, // leg
     LEFT_LOWER_LEG, // leg
     RIGHT_LOWER_LEG, // leg
-    WALL
+    WALL,
+    CAP
 };
 
 class bodyPart {
