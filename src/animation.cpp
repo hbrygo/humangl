@@ -231,7 +231,6 @@ static void applyElbowRotation(glm::mat4& model, const glm::vec3& shoulder, floa
     model = glm::translate(model, partPos);
 }
 
-
 static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float angle, const glm::vec3& axis, const glm::vec3& partPos)
 {
     glm::vec3 neg(-pivot.x, -pivot.y, -pivot.z);
