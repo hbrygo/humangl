@@ -166,6 +166,7 @@ static AnimAngles anim_jumping(float t)
     a.leftElbow = elbowAngle;
     a.rightElbow = elbowAngle;
     a.torsoAngle = torsoAngle;
+    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     a.rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     return a;
 }
