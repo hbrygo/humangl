@@ -3,7 +3,7 @@
 #include <thread>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator);
+void processInput(GLFWwindow *window, Animator &animator);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -11,12 +11,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera globals (defined after SCR_* so they can reference them)
-Camera camera;
-float lastX = 0.0f;
-float lastY = 0.0f;
-bool firstMouse = true;
-bool mouseOn = false;
+// Orbit camera: centred on the character, orbited with WASD/arrows, zoomed with scroll.
+Camera camera(glm::vec3(0.0f, -4.0f, 0.0f)); // target ≈ character centre
 
 // timing
 float deltaTime = 0.0f;
@@ -129,9 +125,6 @@ int main()
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     glViewport(0, 0, fbWidth, fbHeight);
-    // initialize last mouse pos to center of framebuffer
-    lastX = fbWidth / 2.0f;
-    lastY = fbHeight / 2.0f;
 
     // configure global opengl state
     // -----------------------------
@@ -333,7 +326,6 @@ int main()
 
     // render loop
     // -----------
-    bool pressOneTime = false;
     Animator animator;
     while (!glfwWindowShouldClose(window))
     {
@@ -344,9 +336,7 @@ int main()
 
         // input
         // -----
-        processInput(window, pressOneTime, animator);
-
-        // render
+    processInput(window, animator);
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
@@ -358,7 +348,7 @@ int main()
 
         // create transformations
         glm::mat4 projection    = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         // pass transformation matrices to the shader
         ourShader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
@@ -390,39 +380,20 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator)
+void processInput(GLFWwindow *window, Animator &animator)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::UP, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::DOWN, deltaTime);
-
-    // pas touche a ca, ca marche
-    if (!pressOneTime) {
-        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-            // std::cout << "C press" << std::endl;
-            mouseOn = (mouseOn == false) ? true : false;
-            if (mouseOn)
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            else
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            pressOneTime = true;
-        }
-    }
-    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE)
-        pressOneTime = false;
+    // Orbit camera: A/← orbit left, D/→ orbit right, W/↑ orbit up, S/↓ orbit down.
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_DOWN, deltaTime);
 
     static bool pressedAnimationKey = false;
     if (!pressedAnimationKey) { //TODO : SIMPLIFIER LE BORDEL KEY_PRESSED/RELEASE EN 3-4 LIGNES OUI C'EST POSSIBLE MAIS FLEMME ATM
@@ -456,27 +427,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    // std::cout << "Mouse position: (" << xpos << ", " << ypos << ")" << std::endl;
-    if (!mouseOn)
-        return ;
-    (void)window;
-    if (firstMouse)
-    {
-        // std::cout << "Mouse position: (" << xpos << ", " << ypos << ")" << std::endl;
-        lastX = static_cast<float>(xpos);
-        lastY = static_cast<float>(ypos);
-        firstMouse = false;
-    }
-    
-    float xoffset = static_cast<float>(xpos) - lastX;
-    float yoffset = lastY - static_cast<float>(ypos); // reversed since y-coordinates go from bottom to top
-    
-    lastX = static_cast<float>(xpos);
-    lastY = static_cast<float>(ypos);
-    
-    camera.ProcessMouseMovement(xoffset, yoffset);
-    // if (mouseOn)
-    //     glfwSetCursorPos(window, 400, 300);
+    // Camera is now orbited with keys; mouse movement is unused.
+    (void)window; (void)xpos; (void)ypos;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
