@@ -22,7 +22,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     std::map<glm::vec3, int> attachmentPoints;
 
     // gauche/droite | bas/haut | arriere/avant
-    // up left
+    // up right
     glm::vec3 point = cubePosition + glm::vec3(-1.0f, 1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[0];
 
@@ -30,7 +30,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, 1.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[1];
 
-    // up right
+    // up left
     point = cubePosition + glm::vec3(1.0f, 1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[2];
 
@@ -38,23 +38,23 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, 1.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[3];
 
-    // left front
+    // right front
     point = cubePosition + glm::vec3(-1.0f, 0.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[4];
 
-    // left back
+    // right back
     point = cubePosition + glm::vec3(-1.0f, 0.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[5];
 
-    // right back
+    // left back
     point = cubePosition + glm::vec3(1.0f, 0.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[6];
 
-    // right front
+    // left front
     point = cubePosition + glm::vec3(1.0f, 0.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[7];
 
-    // down left
+    // down right
     point = cubePosition + glm::vec3(-1.0f, -1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[8];
 
@@ -62,7 +62,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, -1.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[9];
 
-    // down right
+    // down left
     point = cubePosition + glm::vec3(1.0f, -1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[10];
 
@@ -141,14 +141,14 @@ int main()
          0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        // left (blue)
+        // right (blue)
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        // right (yellow)
+        // left (yellow)
          0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
@@ -173,8 +173,8 @@ int main()
 
     body myBody;
 
-    // up, down, left, right, front, back
-    // right/left | up/down | front/back
+    // up, down, right, left, front, back
+    // left/right | up/down | front/back
     const float HEAD_SCALE = 1.0f;
     const float TORSO_SCALE = 3.0f; // "corp = 3"
     const float ARM_SCALE = 2.0f;   // "bras = 2"
@@ -198,18 +198,18 @@ int main()
     // horizontal offset so arms sit beside the torso
     float arm_offset_x = torso_half + arm_half - (BASE * 0.5); // directly adjacent to torso
 
-    glm::vec3 leftUpperArmCenter = {-arm_offset_x, arm_attach_y, 0.0f};
-    glm::vec3 rightUpperArmCenter = {arm_offset_x, arm_attach_y, 0.0f};
+    glm::vec3 rightUpperArmCenter = {-arm_offset_x, arm_attach_y, 0.0f};
+    glm::vec3 leftUpperArmCenter = {arm_offset_x, arm_attach_y, 0.0f};
     // lower arms positioned below upper arms so they touch
-    glm::vec3 leftLowerArmCenter = {leftUpperArmCenter.x, leftUpperArmCenter.y - (arm_half + arm_half), 0.0f};
     glm::vec3 rightLowerArmCenter = {rightUpperArmCenter.x, rightUpperArmCenter.y - (arm_half + arm_half), 0.0f};
+    glm::vec3 leftLowerArmCenter = {leftUpperArmCenter.x, leftUpperArmCenter.y - (arm_half + arm_half), 0.0f};
 
     // legs attach under the torso
     float leg_attach_x = 0.5f * BASE; // keep legs at +/-0.5 like original layout
-    glm::vec3 leftThighCenter = {-leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
-    glm::vec3 rightThighCenter = {leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
-    glm::vec3 leftLowerLegCenter = {leftThighCenter.x, leftThighCenter.y - (leg_half + leg_half), 0.0f};
+    glm::vec3 rightThighCenter = {-leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
+    glm::vec3 leftThighCenter = {leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
     glm::vec3 rightLowerLegCenter = {rightThighCenter.x, rightThighCenter.y - (leg_half + leg_half), 0.0f};
+    glm::vec3 leftLowerLegCenter = {leftThighCenter.x, leftThighCenter.y - (leg_half + leg_half), 0.0f};
     glm::vec3 cap = {0.0f, headCenter.y + (BASE / 2), 0.0f};
     glm::vec3 visiere = {0.0f, headCenter.y + (BASE / 4), BASE - (BASE / 4)};
 
@@ -228,22 +228,10 @@ int main()
     bodyPart torso(torsoCenter.x, torsoCenter.y, torsoCenter.z, BodyPartType::TORSO, attachmentPoints);
     torso.setSize(glm::vec3(TORSO_SCALE * BASE, TORSO_SCALE * BASE, BASE));
 
-    // left arm
-    attachmentPoints = setAtachementPoints(leftUpperArmCenter, {0, 0, 2, 0,
+    // right arm
+    attachmentPoints = setAtachementPoints(rightUpperArmCenter, {0, 0, 2, 0,
                                                                 0, 0, 0, 0,
                                                                 0, 0, 0, 2});
-    bodyPart leftArm1(leftUpperArmCenter.x, leftUpperArmCenter.y, leftUpperArmCenter.z, BodyPartType::LEFT_UPPER_ARM, attachmentPoints);
-    leftArm1.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
-    attachmentPoints = setAtachementPoints(leftLowerArmCenter, {0, 0, 0, 2,
-                                                                0, 0, 0, 0,
-                                                                0, 0, 0, 0});
-    bodyPart leftArm2(leftLowerArmCenter.x, leftLowerArmCenter.y, leftLowerArmCenter.z, BodyPartType::LEFT_LOWER_ARM, attachmentPoints);
-    leftArm2.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
-
-    // right arm
-    attachmentPoints = setAtachementPoints(rightUpperArmCenter, {2, 0, 0, 0,
-                                                                 0, 0, 0, 0,
-                                                                 0, 0, 0, 2});
     bodyPart rightArm1(rightUpperArmCenter.x, rightUpperArmCenter.y, rightUpperArmCenter.z, BodyPartType::RIGHT_UPPER_ARM, attachmentPoints);
     rightArm1.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
     attachmentPoints = setAtachementPoints(rightLowerArmCenter, {0, 0, 0, 2,
@@ -252,29 +240,41 @@ int main()
     bodyPart rightArm2(rightLowerArmCenter.x, rightLowerArmCenter.y, rightLowerArmCenter.z, BodyPartType::RIGHT_LOWER_ARM, attachmentPoints);
     rightArm2.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
 
-    // left leg (thigh + lower)
-    attachmentPoints = setAtachementPoints(leftThighCenter, {0, 0, 0, 2,
-                                                             0, 0, 0, 0,
-                                                             0, 0, 0, 2});
-    bodyPart leftLeg1(leftThighCenter.x, leftThighCenter.y, leftThighCenter.z, BodyPartType::LEFT_THIGH, attachmentPoints);
-    leftLeg1.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
-    attachmentPoints = setAtachementPoints(leftLowerLegCenter, {0, 0, 0, 2,
+    // left arm
+    attachmentPoints = setAtachementPoints(leftUpperArmCenter, {2, 0, 0, 0,
+                                                                 0, 0, 0, 0,
+                                                                 0, 0, 0, 2});
+    bodyPart leftArm1(leftUpperArmCenter.x, leftUpperArmCenter.y, leftUpperArmCenter.z, BodyPartType::LEFT_UPPER_ARM, attachmentPoints);
+    leftArm1.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
+    attachmentPoints = setAtachementPoints(leftLowerArmCenter, {0, 0, 0, 2,
                                                                 0, 0, 0, 0,
                                                                 0, 0, 0, 0});
-    bodyPart leftLeg2(leftLowerLegCenter.x, leftLowerLegCenter.y, leftLowerLegCenter.z, BodyPartType::LEFT_LOWER_LEG, attachmentPoints);
-    leftLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+    bodyPart leftArm2(leftLowerArmCenter.x, leftLowerArmCenter.y, leftLowerArmCenter.z, BodyPartType::LEFT_LOWER_ARM, attachmentPoints);
+    leftArm2.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
 
-    // right leg
+    // right leg (thigh + lower)
     attachmentPoints = setAtachementPoints(rightThighCenter, {0, 0, 0, 2,
-                                                              0, 0, 0, 0,
-                                                              0, 0, 0, 2});
+                                                             0, 0, 0, 0,
+                                                             0, 0, 0, 2});
     bodyPart rightLeg1(rightThighCenter.x, rightThighCenter.y, rightThighCenter.z, BodyPartType::RIGHT_THIGH, attachmentPoints);
     rightLeg1.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
     attachmentPoints = setAtachementPoints(rightLowerLegCenter, {0, 0, 0, 2,
-                                                                 0, 0, 0, 0,
-                                                                 0, 0, 0, 0});
+                                                                0, 0, 0, 0,
+                                                                0, 0, 0, 0});
     bodyPart rightLeg2(rightLowerLegCenter.x, rightLowerLegCenter.y, rightLowerLegCenter.z, BodyPartType::RIGHT_LOWER_LEG, attachmentPoints);
     rightLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+
+    // left leg
+    attachmentPoints = setAtachementPoints(leftThighCenter, {0, 0, 0, 2,
+                                                              0, 0, 0, 0,
+                                                              0, 0, 0, 2});
+    bodyPart leftLeg1(leftThighCenter.x, leftThighCenter.y, leftThighCenter.z, BodyPartType::LEFT_THIGH, attachmentPoints);
+    leftLeg1.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+    attachmentPoints = setAtachementPoints(leftLowerLegCenter, {0, 0, 0, 2,
+                                                                 0, 0, 0, 0,
+                                                                 0, 0, 0, 0});
+    bodyPart leftLeg2(leftLowerLegCenter.x, leftLowerLegCenter.y, leftLowerLegCenter.z, BodyPartType::LEFT_LOWER_LEG, attachmentPoints);
+    leftLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
     
     attachmentPoints = setAtachementPoints(cap, {0, 0, 0, 0,
                                                                  0, 0, 0, 0,
@@ -290,14 +290,14 @@ int main()
     // add to body
     myBody.addPart(head);
     myBody.addPart(torso);
-    myBody.addPart(leftArm1);
-    myBody.addPart(leftArm2);
     myBody.addPart(rightArm1);
     myBody.addPart(rightArm2);
-    myBody.addPart(leftLeg1);
-    myBody.addPart(leftLeg2);
+    myBody.addPart(leftArm1);
+    myBody.addPart(leftArm2);
     myBody.addPart(rightLeg1);
     myBody.addPart(rightLeg2);
+    myBody.addPart(leftLeg1);
+    myBody.addPart(leftLeg2);
     myBody.addPart(capPart);
     myBody.addPart(visierePart);
 
