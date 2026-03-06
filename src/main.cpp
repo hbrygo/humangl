@@ -2,20 +2,15 @@
 #include "animation.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void processInput(GLFWwindow *window, Animator &animator);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera globals (defined after SCR_* so they can reference them)
-Camera camera;
-float lastX = 0.0f;
-float lastY = 0.0f;
-bool firstMouse = true;
-bool mouseOn = false;
+// Orbit camera: centred on the character, orbited with WASD/arrows, zoomed with scroll.
+Camera camera(glm::vec3(0.0f, -4.0f, 0.0f)); // target ≈ character centre
 
 // timing
 float deltaTime = 0.0f;
@@ -26,7 +21,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     std::map<glm::vec3, int> attachmentPoints;
 
     // gauche/droite | bas/haut | arriere/avant
-    // up left
+    // up right
     glm::vec3 point = cubePosition + glm::vec3(-1.0f, 1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[0];
 
@@ -34,7 +29,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, 1.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[1];
 
-    // up right
+    // up left
     point = cubePosition + glm::vec3(1.0f, 1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[2];
 
@@ -42,23 +37,23 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, 1.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[3];
 
-    // left front
+    // right front
     point = cubePosition + glm::vec3(-1.0f, 0.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[4];
 
-    // left back
+    // right back
     point = cubePosition + glm::vec3(-1.0f, 0.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[5];
 
-    // right back
+    // left back
     point = cubePosition + glm::vec3(1.0f, 0.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[6];
 
-    // right front
+    // left front
     point = cubePosition + glm::vec3(1.0f, 0.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[7];
 
-    // down left
+    // down right
     point = cubePosition + glm::vec3(-1.0f, -1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[8];
 
@@ -66,7 +61,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, -1.0f, -1.0f);
     attachmentPoints[point] = attachmentStates[9];
 
-    // down right
+    // down left
     point = cubePosition + glm::vec3(1.0f, -1.0f, 0.0f);
     attachmentPoints[point] = attachmentStates[10];
 
@@ -101,7 +96,6 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     // glad: load all OpenGL function pointers
@@ -115,9 +109,6 @@ int main()
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     glViewport(0, 0, fbWidth, fbHeight);
-    // initialize last mouse pos to center of framebuffer
-    lastX = fbWidth / 2.0f;
-    lastY = fbHeight / 2.0f;
 
     // configure global opengl state
     // -----------------------------
@@ -148,14 +139,14 @@ int main()
          0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        // left (blue)
+        // right (blue)
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        // right (yellow)
+        // left (yellow)
          0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
@@ -180,8 +171,8 @@ int main()
 
     body myBody;
 
-    // up, down, left, right, front, back
-    // right/left | up/down | front/back
+    // up, down, right, left, front, back
+    // left/right | up/down | front/back
     const float HEAD_SCALE = 1.0f;
     const float TORSO_SCALE = 3.0f; // "corp = 3"
     const float ARM_SCALE = 2.0f;   // "bras = 2"
@@ -205,18 +196,18 @@ int main()
     // horizontal offset so arms sit beside the torso
     float arm_offset_x = torso_half + arm_half - (BASE * 0.5); // directly adjacent to torso
 
-    glm::vec3 leftUpperArmCenter = {-arm_offset_x, arm_attach_y, 0.0f};
-    glm::vec3 rightUpperArmCenter = {arm_offset_x, arm_attach_y, 0.0f};
+    glm::vec3 rightUpperArmCenter = {-arm_offset_x, arm_attach_y, 0.0f};
+    glm::vec3 leftUpperArmCenter = {arm_offset_x, arm_attach_y, 0.0f};
     // lower arms positioned below upper arms so they touch
-    glm::vec3 leftLowerArmCenter = {leftUpperArmCenter.x, leftUpperArmCenter.y - (arm_half + arm_half), 0.0f};
     glm::vec3 rightLowerArmCenter = {rightUpperArmCenter.x, rightUpperArmCenter.y - (arm_half + arm_half), 0.0f};
+    glm::vec3 leftLowerArmCenter = {leftUpperArmCenter.x, leftUpperArmCenter.y - (arm_half + arm_half), 0.0f};
 
     // legs attach under the torso
     float leg_attach_x = 0.5f * BASE; // keep legs at +/-0.5 like original layout
-    glm::vec3 leftThighCenter = {-leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
-    glm::vec3 rightThighCenter = {leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
-    glm::vec3 leftLowerLegCenter = {leftThighCenter.x, leftThighCenter.y - (leg_half + leg_half), 0.0f};
+    glm::vec3 rightThighCenter = {-leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
+    glm::vec3 leftThighCenter = {leg_attach_x, torsoCenter.y - (torso_half + leg_half), 0.0f};
     glm::vec3 rightLowerLegCenter = {rightThighCenter.x, rightThighCenter.y - (leg_half + leg_half), 0.0f};
+    glm::vec3 leftLowerLegCenter = {leftThighCenter.x, leftThighCenter.y - (leg_half + leg_half), 0.0f};
     glm::vec3 cap = {0.0f, headCenter.y + (BASE / 2), 0.0f};
     glm::vec3 visiere = {0.0f, headCenter.y + (BASE / 4), BASE - (BASE / 4)};
 
@@ -235,22 +226,10 @@ int main()
     bodyPart torso(torsoCenter.x, torsoCenter.y, torsoCenter.z, BodyPartType::TORSO, attachmentPoints);
     torso.setSize(glm::vec3(TORSO_SCALE * BASE, TORSO_SCALE * BASE, BASE));
 
-    // left arm
-    attachmentPoints = setAtachementPoints(leftUpperArmCenter, {0, 0, 2, 0,
+    // right arm
+    attachmentPoints = setAtachementPoints(rightUpperArmCenter, {0, 0, 2, 0,
                                                                 0, 0, 0, 0,
                                                                 0, 0, 0, 2});
-    bodyPart leftArm1(leftUpperArmCenter.x, leftUpperArmCenter.y, leftUpperArmCenter.z, BodyPartType::LEFT_UPPER_ARM, attachmentPoints);
-    leftArm1.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
-    attachmentPoints = setAtachementPoints(leftLowerArmCenter, {0, 0, 0, 2,
-                                                                0, 0, 0, 0,
-                                                                0, 0, 0, 0});
-    bodyPart leftArm2(leftLowerArmCenter.x, leftLowerArmCenter.y, leftLowerArmCenter.z, BodyPartType::LEFT_LOWER_ARM, attachmentPoints);
-    leftArm2.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
-
-    // right arm
-    attachmentPoints = setAtachementPoints(rightUpperArmCenter, {2, 0, 0, 0,
-                                                                 0, 0, 0, 0,
-                                                                 0, 0, 0, 2});
     bodyPart rightArm1(rightUpperArmCenter.x, rightUpperArmCenter.y, rightUpperArmCenter.z, BodyPartType::RIGHT_UPPER_ARM, attachmentPoints);
     rightArm1.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
     attachmentPoints = setAtachementPoints(rightLowerArmCenter, {0, 0, 0, 2,
@@ -259,29 +238,41 @@ int main()
     bodyPart rightArm2(rightLowerArmCenter.x, rightLowerArmCenter.y, rightLowerArmCenter.z, BodyPartType::RIGHT_LOWER_ARM, attachmentPoints);
     rightArm2.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
 
-    // left leg (thigh + lower)
-    attachmentPoints = setAtachementPoints(leftThighCenter, {0, 0, 0, 2,
-                                                             0, 0, 0, 0,
-                                                             0, 0, 0, 2});
-    bodyPart leftLeg1(leftThighCenter.x, leftThighCenter.y, leftThighCenter.z, BodyPartType::LEFT_THIGH, attachmentPoints);
-    leftLeg1.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
-    attachmentPoints = setAtachementPoints(leftLowerLegCenter, {0, 0, 0, 2,
+    // left arm
+    attachmentPoints = setAtachementPoints(leftUpperArmCenter, {2, 0, 0, 0,
+                                                                 0, 0, 0, 0,
+                                                                 0, 0, 0, 2});
+    bodyPart leftArm1(leftUpperArmCenter.x, leftUpperArmCenter.y, leftUpperArmCenter.z, BodyPartType::LEFT_UPPER_ARM, attachmentPoints);
+    leftArm1.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
+    attachmentPoints = setAtachementPoints(leftLowerArmCenter, {0, 0, 0, 2,
                                                                 0, 0, 0, 0,
                                                                 0, 0, 0, 0});
-    bodyPart leftLeg2(leftLowerLegCenter.x, leftLowerLegCenter.y, leftLowerLegCenter.z, BodyPartType::LEFT_LOWER_LEG, attachmentPoints);
-    leftLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+    bodyPart leftArm2(leftLowerArmCenter.x, leftLowerArmCenter.y, leftLowerArmCenter.z, BodyPartType::LEFT_LOWER_ARM, attachmentPoints);
+    leftArm2.setSize(glm::vec3(BASE, ARM_SCALE * BASE, BASE));
 
-    // right leg
+    // right leg (thigh + lower)
     attachmentPoints = setAtachementPoints(rightThighCenter, {0, 0, 0, 2,
-                                                              0, 0, 0, 0,
-                                                              0, 0, 0, 2});
+                                                             0, 0, 0, 0,
+                                                             0, 0, 0, 2});
     bodyPart rightLeg1(rightThighCenter.x, rightThighCenter.y, rightThighCenter.z, BodyPartType::RIGHT_THIGH, attachmentPoints);
     rightLeg1.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
     attachmentPoints = setAtachementPoints(rightLowerLegCenter, {0, 0, 0, 2,
-                                                                 0, 0, 0, 0,
-                                                                 0, 0, 0, 0});
+                                                                0, 0, 0, 0,
+                                                                0, 0, 0, 0});
     bodyPart rightLeg2(rightLowerLegCenter.x, rightLowerLegCenter.y, rightLowerLegCenter.z, BodyPartType::RIGHT_LOWER_LEG, attachmentPoints);
     rightLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+
+    // left leg
+    attachmentPoints = setAtachementPoints(leftThighCenter, {0, 0, 0, 2,
+                                                              0, 0, 0, 0,
+                                                              0, 0, 0, 2});
+    bodyPart leftLeg1(leftThighCenter.x, leftThighCenter.y, leftThighCenter.z, BodyPartType::LEFT_THIGH, attachmentPoints);
+    leftLeg1.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
+    attachmentPoints = setAtachementPoints(leftLowerLegCenter, {0, 0, 0, 2,
+                                                                 0, 0, 0, 0,
+                                                                 0, 0, 0, 0});
+    bodyPart leftLeg2(leftLowerLegCenter.x, leftLowerLegCenter.y, leftLowerLegCenter.z, BodyPartType::LEFT_LOWER_LEG, attachmentPoints);
+    leftLeg2.setSize(glm::vec3(BASE, LEG_SCALE * BASE, BASE));
     
     attachmentPoints = setAtachementPoints(cap, {0, 0, 0, 0,
                                                                  0, 0, 0, 0,
@@ -297,14 +288,14 @@ int main()
     // add to body
     myBody.addPart(head);
     myBody.addPart(torso);
-    myBody.addPart(leftArm1);
-    myBody.addPart(leftArm2);
     myBody.addPart(rightArm1);
     myBody.addPart(rightArm2);
-    myBody.addPart(leftLeg1);
-    myBody.addPart(leftLeg2);
+    myBody.addPart(leftArm1);
+    myBody.addPart(leftArm2);
     myBody.addPart(rightLeg1);
     myBody.addPart(rightLeg2);
+    myBody.addPart(leftLeg1);
+    myBody.addPart(leftLeg2);
     myBody.addPart(capPart);
     myBody.addPart(visierePart);
 
@@ -332,7 +323,6 @@ int main()
 
     // render loop
     // -----------
-    bool pressOneTime = false;
     Animator animator;
     while (!glfwWindowShouldClose(window))
     {
@@ -343,9 +333,7 @@ int main()
 
         // input
         // -----
-        processInput(window, pressOneTime, animator);
-
-        // render
+    processInput(window, animator);
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
@@ -357,7 +345,7 @@ int main()
 
         // create transformations
         glm::mat4 projection    = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         // pass transformation matrices to the shader
         ourShader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
@@ -389,39 +377,19 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator)
+void processInput(GLFWwindow *window, Animator &animator)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::UP, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camera.ProcessKeyboard(Camera::DOWN, deltaTime);
-
-    // pas touche a ca, ca marche
-    if (!pressOneTime) {
-        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-            // std::cout << "C press" << std::endl;
-            mouseOn = (mouseOn == false) ? true : false;
-            if (mouseOn)
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            else
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            pressOneTime = true;
-        }
-    }
-    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE)
-        pressOneTime = false;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.ProcessKeyboard(Camera::ORBIT_DOWN, deltaTime);
 
     static bool pressedAnimationKey = false;
     if (!pressedAnimationKey) { //TODO : SIMPLIFIER LE BORDEL KEY_PRESSED/RELEASE EN 3-4 LIGNES OUI C'EST POSSIBLE MAIS FLEMME ATM
@@ -437,9 +405,12 @@ void processInput(GLFWwindow *window, bool &pressOneTime, Animator &animator)
         } else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
             animator.setState(JUMPING);
             pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+            animator.setState(T_POSE);
+            pressedAnimationKey = true;
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE)
         pressedAnimationKey = false;
 }
 
@@ -451,31 +422,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    // std::cout << "Mouse position: (" << xpos << ", " << ypos << ")" << std::endl;
-    if (!mouseOn)
-        return ;
-    (void)window;
-    if (firstMouse)
-    {
-        // std::cout << "Mouse position: (" << xpos << ", " << ypos << ")" << std::endl;
-        lastX = static_cast<float>(xpos);
-        lastY = static_cast<float>(ypos);
-        firstMouse = false;
-    }
-    
-    float xoffset = static_cast<float>(xpos) - lastX;
-    float yoffset = lastY - static_cast<float>(ypos); // reversed since y-coordinates go from bottom to top
-    
-    lastX = static_cast<float>(xpos);
-    lastY = static_cast<float>(ypos);
-    
-    camera.ProcessMouseMovement(xoffset, yoffset);
-    // if (mouseOn)
-    //     glfwSetCursorPos(window, 400, 300);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

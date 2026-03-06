@@ -35,14 +35,14 @@ namespace std {
 enum BodyPartType {
     HEAD,
     TORSO,
-    LEFT_UPPER_ARM,
-    LEFT_LOWER_ARM,
     RIGHT_UPPER_ARM,
     RIGHT_LOWER_ARM,
-    LEFT_THIGH, // leg
+    LEFT_UPPER_ARM,
+    LEFT_LOWER_ARM,
     RIGHT_THIGH, // leg
-    LEFT_LOWER_LEG, // leg
+    LEFT_THIGH, // leg
     RIGHT_LOWER_LEG, // leg
+    LEFT_LOWER_LEG, // leg
     WALL,
     CAP,
     VISIERE
@@ -106,21 +106,21 @@ class body {
                     return parts[0].getAttachmentPoints();
                 case TORSO:
                     return parts[1].getAttachmentPoints();
-                case LEFT_UPPER_ARM:
-                    return parts[2].getAttachmentPoints();
-                case LEFT_LOWER_ARM:
-                    return parts[3].getAttachmentPoints();
                 case RIGHT_UPPER_ARM:
-                    return parts[4].getAttachmentPoints();
+                    return parts[2].getAttachmentPoints();
                 case RIGHT_LOWER_ARM:
+                    return parts[3].getAttachmentPoints();
+                case LEFT_UPPER_ARM:
+                    return parts[4].getAttachmentPoints();
+                case LEFT_LOWER_ARM:
                     return parts[5].getAttachmentPoints();
-                case LEFT_THIGH:
-                    return parts[6].getAttachmentPoints();
-                case LEFT_LOWER_LEG:
-                    return parts[7].getAttachmentPoints();
                 case RIGHT_THIGH:
-                    return parts[8].getAttachmentPoints();
+                    return parts[6].getAttachmentPoints();
                 case RIGHT_LOWER_LEG:
+                    return parts[7].getAttachmentPoints();
+                case LEFT_THIGH:
+                    return parts[8].getAttachmentPoints();
+                case LEFT_LOWER_LEG:
                     return parts[9].getAttachmentPoints();
                 case CAP:
                     return parts[10].getAttachmentPoints();
@@ -321,7 +321,7 @@ class body {
             BodyPartType bodyPart;
             for (const auto& part : parts) {
                 bodyPart = part.getPartType();
-                if (bodyPart == BodyPartType::LEFT_UPPER_ARM || bodyPart == BodyPartType::LEFT_LOWER_ARM  || bodyPart == BodyPartType::RIGHT_UPPER_ARM || bodyPart == BodyPartType::RIGHT_LOWER_ARM) {
+                if (bodyPart == BodyPartType::RIGHT_UPPER_ARM || bodyPart == BodyPartType::RIGHT_LOWER_ARM  || bodyPart == BodyPartType::LEFT_UPPER_ARM || bodyPart == BodyPartType::LEFT_LOWER_ARM) {
                     float x = part.getX();
                     float y = part.getY();
                     float z = part.getZ();
@@ -349,7 +349,8 @@ class body {
             glPolygonOffset(-1.0f, -1.0f);
             for (const auto &part : parts)
             {
-                if (bodyPart == BodyPartType::LEFT_UPPER_ARM || bodyPart == BodyPartType::LEFT_LOWER_ARM  || bodyPart == BodyPartType::RIGHT_UPPER_ARM || bodyPart == BodyPartType::RIGHT_LOWER_ARM) {
+                BodyPartType bp = part.getPartType();
+                if (bp == BodyPartType::RIGHT_UPPER_ARM || bp == BodyPartType::RIGHT_LOWER_ARM  || bp == BodyPartType::LEFT_UPPER_ARM || bp == BodyPartType::LEFT_LOWER_ARM) {
                     glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, position);
@@ -376,7 +377,7 @@ class body {
             BodyPartType bodyPart;
             for (const auto& part : parts) {
                 bodyPart = part.getPartType();
-                if (bodyPart == BodyPartType::LEFT_THIGH || bodyPart == BodyPartType::LEFT_LOWER_LEG || bodyPart == BodyPartType::RIGHT_THIGH || bodyPart == BodyPartType::RIGHT_LOWER_LEG) {
+                if (bodyPart == BodyPartType::RIGHT_THIGH || bodyPart == BodyPartType::RIGHT_LOWER_LEG || bodyPart == BodyPartType::LEFT_THIGH || bodyPart == BodyPartType::LEFT_LOWER_LEG) {
                     float x = part.getX();
                     float y = part.getY();
                     float z = part.getZ();
@@ -402,7 +403,8 @@ class body {
             glPolygonOffset(-1.0f, -1.0f);
             for (const auto &part : parts)
             {
-                if (bodyPart == BodyPartType::LEFT_THIGH || bodyPart == BodyPartType::LEFT_LOWER_LEG || bodyPart == BodyPartType::RIGHT_THIGH || bodyPart == BodyPartType::RIGHT_LOWER_LEG) {
+                BodyPartType bp = part.getPartType();
+                if (bp == BodyPartType::RIGHT_THIGH || bp == BodyPartType::RIGHT_LOWER_LEG || bp == BodyPartType::LEFT_THIGH || bp == BodyPartType::LEFT_LOWER_LEG) {
                     {
                         glm::vec3 position = {part.getX(), part.getY(), part.getZ()};
                         glm::mat4 model = glm::mat4(1.0f);
