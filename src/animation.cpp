@@ -14,9 +14,10 @@ struct AnimAngles
     float rightElbow = 0.0f;
     glm::vec3 leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    glm::vec3 rightArmAxis = glm::vec3(-1.0f, 0.0f, 0.0f);
+    glm::vec3 rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 bodyOffset = glm::vec3(0.0f, 0.0f, 0.0f);
     float torsoAngle = 0.0f; // forward tilt around torso base (X axis)
+    float shoulderDrop = 0.0f; // légère descente des épaules uniquement
 };
 
 
@@ -43,14 +44,29 @@ static glm::vec3 getPivotPoint(const body& myBody, int partType, bool proximal)
 
 static AnimAngles anim_t_pose(float t)
 {
-    (void)t; // unused
     AnimAngles a;
-    // Bras droit : rotation +90° autour de Z => bras part vers la droite
-    a.leftArm     = glm::radians(90.0f);
+    const float period = 4.0f;
+    float p = std::fmod(t, period) / period;
+
+    float angle;
+    if (p < 0.1f) {
+        float s = p / 0.1f;
+        angle = glm::radians(90.0f) * s;
+    } else if (p < 0.7f) {
+        angle = glm::radians(90.0f);
+    } else if (p < 0.80f) {
+        float s = (p - 0.7f) / 0.1f;
+        angle = glm::radians(90.0f) * (1.0f - s);
+    } else {
+        angle = 0.0f;
+    }
+
+    a.leftArm     = angle;
     a.leftArmAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-    // Bras gauche : rotation -90° autour de Z => bras part vers la gauche (symétrique)
-    a.rightArm      = glm::radians(-90.0f);
+    a.rightArm      = -angle;
     a.rightArmAxis  = glm::vec3(0.0f, 0.0f, 1.0f);
+
+    a.shoulderDrop = (angle / glm::radians(90.0f)) * -0.5f;
     return a;
 }
 
@@ -166,8 +182,6 @@ static AnimAngles anim_jumping(float t)
     a.rightElbow = elbowAngle;
     a.leftElbow = elbowAngle;
     a.torsoAngle = torsoAngle;
-    a.rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f); //to patch
-    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     return a;
 }
 
@@ -176,7 +190,6 @@ static AnimAngles anim_walking(float t)
 {
     AnimAngles a;
     float swing = std::sin(t * 4.0f);
-    a.rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f); // to patch
     a.rightLeg = glm::radians(35.0f * swing);
     a.leftLeg = -glm::radians(35.0f * swing);
     a.rightArm = -glm::radians(15.0f * swing);
@@ -272,10 +285,11 @@ void Animator::draw(Shader& ourShader, body& myBody)
         return torsoBase + glm::vec3(rel.x, rel.y * c - rel.z * s, rel.y * s + rel.z * c);
     };
 
-    const glm::vec3 rightShoulder = withTorsoTilt(getPivotPoint(myBody, RIGHT_UPPER_ARM, true) + a.bodyOffset);
-    const glm::vec3 leftShoulder = withTorsoTilt(getPivotPoint(myBody, LEFT_UPPER_ARM, true) + a.bodyOffset);
-    const glm::vec3 rightElbow = withTorsoTilt(getPivotPoint(myBody, RIGHT_UPPER_ARM, false) + a.bodyOffset);
-    const glm::vec3 leftElbow = withTorsoTilt(getPivotPoint(myBody, LEFT_UPPER_ARM, false) + a.bodyOffset);
+    const glm::vec3 shoulderOff = glm::vec3(0.0f, a.shoulderDrop, 0.0f);
+    const glm::vec3 rightShoulder = withTorsoTilt(getPivotPoint(myBody, RIGHT_UPPER_ARM, true) + a.bodyOffset + shoulderOff);
+    const glm::vec3 leftShoulder = withTorsoTilt(getPivotPoint(myBody, LEFT_UPPER_ARM, true) + a.bodyOffset + shoulderOff);
+    const glm::vec3 rightElbow = withTorsoTilt(getPivotPoint(myBody, RIGHT_UPPER_ARM, false) + a.bodyOffset + shoulderOff);
+    const glm::vec3 leftElbow = withTorsoTilt(getPivotPoint(myBody, LEFT_UPPER_ARM, false) + a.bodyOffset + shoulderOff);
     const glm::vec3 rightHip = getPivotPoint(myBody, RIGHT_THIGH, true) + a.bodyOffset;
     const glm::vec3 leftHip = getPivotPoint(myBody, LEFT_THIGH, true) + a.bodyOffset;
     const glm::vec3 rightKnee = getPivotPoint(myBody, RIGHT_THIGH, false) + a.bodyOffset;
@@ -338,7 +352,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
         BodyPartType type = part.getPartType();
         if (type != RIGHT_UPPER_ARM && type != RIGHT_LOWER_ARM && type != LEFT_UPPER_ARM && type != LEFT_LOWER_ARM)
             continue;
-        glm::vec3 pos = withTorsoTilt(glm::vec3(part.getX(), part.getY(), part.getZ()) + a.bodyOffset);
+        glm::vec3 pos = withTorsoTilt(glm::vec3(part.getX(), part.getY(), part.getZ()) + a.bodyOffset + shoulderOff);
         glm::mat4 model(1.0f);
         bool isLeftArm = (part.getX() > 0.0f);
         bool isLower = (type == RIGHT_LOWER_ARM || type == LEFT_LOWER_ARM);
@@ -402,7 +416,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
             applyPivotRotation(model, torsoBase, a.torsoAngle, glm::vec3(1,0,0), pos + a.bodyOffset);
         } else if (type == RIGHT_UPPER_ARM || type == RIGHT_LOWER_ARM ||
                    type == LEFT_UPPER_ARM || type == LEFT_LOWER_ARM) {
-            glm::vec3 pos = withTorsoTilt(glm::vec3(part.getX(), part.getY(), part.getZ()) + a.bodyOffset);
+            glm::vec3 pos = withTorsoTilt(glm::vec3(part.getX(), part.getY(), part.getZ()) + a.bodyOffset + shoulderOff);
             bool isLeftArm = (part.getX() > 0.0f);
             bool isLower = (type == RIGHT_LOWER_ARM || type == LEFT_LOWER_ARM);
             if (isLeftArm) {
