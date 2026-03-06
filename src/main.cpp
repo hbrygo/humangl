@@ -408,9 +408,15 @@ void processInput(GLFWwindow *window, Animator &animator)
         } else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
             animator.setState(T_POSE);
             pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+            animator.setState(NARUTO_RUN);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+            animator.setState(EAGLE_FLIGHT);
+            pressedAnimationKey = true;
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE)
         pressedAnimationKey = false;
 }
 
