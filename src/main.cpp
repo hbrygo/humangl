@@ -498,6 +498,9 @@ void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musi
         } else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
             animator.setState(NARUTO_RUN);
             pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+            animator.setState(EAGLE_FLIGHT);
+            pressedAnimationKey = true;
         }
     }
     if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && 

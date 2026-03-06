@@ -42,6 +42,34 @@ static glm::vec3 getPivotPoint(const body& myBody, int partType, bool proximal)
 }
 
 
+static AnimAngles anim_eagle_flight(float t)
+{
+    AnimAngles a;
+    const float riseTime = 0.4f;
+
+    float angle;
+    if (t < riseTime) {
+        float s = t / riseTime;
+        angle = glm::radians(90.0f) * s;
+    } else {
+        float flap = std::sin((t - riseTime) * 50.0f);
+        angle = glm::radians(90.0f + 25.0f * flap);
+    }
+
+    a.leftArm     = angle;
+    a.leftArmAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+    a.rightArm      = -angle;
+    a.rightArmAxis  = glm::vec3(0.0f, 0.0f, 1.0f);
+    a.shoulderDrop = (std::min(angle, glm::radians(90.0f)) / glm::radians(90.0f)) * -0.5f;
+
+    if (t >= riseTime) {
+        float lift = (t - riseTime) * 30.0f;
+        a.bodyOffset = glm::vec3(0.0f, lift, 0.0f);
+    }
+
+    return a;
+}
+
 static AnimAngles anim_t_pose(float t)
 {
     AnimAngles a;
@@ -236,6 +264,8 @@ static AnimAngles getAnimAngles(int state, float t)
             return anim_t_pose(t);
         case NARUTO_RUN:
             return anim_naruto_run(t);
+        case EAGLE_FLIGHT:
+            return anim_eagle_flight(t);
         default:
             return AnimAngles();
     }
