@@ -502,10 +502,27 @@ void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musi
             animator.setState(EAGLE_FLIGHT);
             pressedAnimationKey = true;
         }
-    }
-    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && 
-        glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE && 
-        glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE) {
+        else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+        {
+            animator.setState(GANGNAM_STYLE);
+            pressedAnimationKey = true;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+        {
+            animator.setState(MJ_PENCHING);
+            pressedAnimationKey = true;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+        {
+            animator.setState(HARDBASS_ROBLOX);
+            pressedAnimationKey = true;
+        }
+}
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE) {
         pressedAnimationKey = false;
     }
 }
