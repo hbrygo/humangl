@@ -12,6 +12,7 @@ struct AnimAngles
     float rightKnee = 0.0f;
     float leftElbow = 0.0f;
     float rightElbow = 0.0f;
+    float leftArmSide = 0.0f;
     float rightArmSide = 0.0f;
     float rightElbowSide = 0.0f;
     glm::vec3 leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -26,6 +27,34 @@ struct AnimAngles
     float torsoAngle = 0.0f;
     float shoulderDrop = 0.0f;
 };
+
+static float clampUnit(float x)
+{
+    if (x < 0.f)
+        return 0.f;
+    if (x > 1.f)
+        return 1.f;
+    return x;
+}
+
+
+static float easeInOut(float x)
+{
+    return x * x * (3.0f - 2.0f * x);
+}
+
+
+static float linearInterp(float a, float b, float s)
+{
+    return a + (b - a) * s;
+}
+
+
+static float phaseProgress(float p, float start, float end)
+{
+    float t = (p - start) / (end - start);
+    return easeInOut(clampUnit(t));
+}
 
 
 static glm::vec3 getPivotPoint(const body& myBody, int partType, bool proximal)
@@ -64,7 +93,7 @@ static AnimAngles anim_eagle_flight(float t)
     }
 
     a.leftArm     = angle;
-    a.leftArmAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     a.rightArm      = -angle;
     a.rightArmAxis  = glm::vec3(0.0f, 0.0f, 1.0f);
     a.shoulderDrop = (std::min(angle, glm::radians(90.0f)) / glm::radians(90.0f)) * -0.5f;
@@ -105,41 +134,43 @@ static AnimAngles anim_t_pose(float t)
     return a;
 }
 
+
 static AnimAngles anim_waving(float t)
 {
     AnimAngles a;
-    a.leftArm     = glm::radians(160.0f + 20.0f * std::sin(t * 3.0f));
-    a.leftArmAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+    const float introDuration = 0.45f;
+    const float sweepDelay = 0.12f;
+    const float baseArm = glm::radians(-145.0f);
+    const float baseElbow = glm::radians(-50.0f);
+
+    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+    a.leftElbowAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+
+    if (t < introDuration) {
+        float s = easeInOut(clampUnit(t / introDuration));
+        a.leftArm = linearInterp(0.0f, baseArm, s);
+        a.leftElbow = linearInterp(0.0f, baseElbow, s);
+        return a;
+    }
+
+    float waveT = t - introDuration;
+    float speedElbow = 7.5f;
+    float elbowWave = std::sin(waveT * speedElbow);
+
+    if (waveT < sweepDelay) {
+        a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+        a.leftArm = baseArm;
+        a.leftArmSide = 0.0f;
+    } else {
+        float sweepT = waveT - sweepDelay;
+        float zSweep = std::sin(sweepT * 6.5f);
+        a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+        a.leftArm = baseArm;
+        a.leftArmSide = -glm::radians(7.0f) * zSweep;
+    }
+
+    a.leftElbow = baseElbow + glm::radians(50.0f) * (0.5f + 0.5f * elbowWave);
     return a;
-}
-
-
-static float clampUnit(float x)
-{
-    if (x < 0.f)
-        return 0.f;
-    if (x > 1.f)
-        return 1.f;
-    return x;
-}
-
-
-static float easeInOut(float x)
-{
-    return x * x * (3.0f - 2.0f * x);
-}
-
-
-static float linearInterp(float a, float b, float s)
-{
-    return a + (b - a) * s;
-}
-
-
-static float phaseProgress(float p, float start, float end)
-{
-    float t = (p - start) / (end - start);
-    return easeInOut(clampUnit(t));
 }
 
 
@@ -520,9 +551,11 @@ void Animator::draw(Shader& ourShader, body& myBody)
         if (isLeftArm) {
             if (isLower && a.leftElbow != 0.0f)
                 applyTorsoElbowRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis,
-                                        leftElbow, a.leftElbow, a.leftElbowAxis, pos);
+                                        leftElbow, a.leftElbow, a.leftElbowAxis, pos,
+                                        a.leftArmSide, 0.0f);
             else
-                applyTorsoArmRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis, pos);
+                applyTorsoArmRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis, pos,
+                                      a.leftArmSide);
         } else {
             if (isLower && a.rightElbow != 0.0f)
                 applyTorsoElbowRotation(model, torsoBase, a.torsoAngle, rightShoulder, a.rightArm, a.rightArmAxis,
@@ -586,9 +619,11 @@ void Animator::draw(Shader& ourShader, body& myBody)
             if (isLeftArm) {
                 if (isLower && a.leftElbow != 0.0f)
                     applyTorsoElbowRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis,
-                                            leftElbow, a.leftElbow, a.leftElbowAxis, pos);
+                                            leftElbow, a.leftElbow, a.leftElbowAxis, pos,
+                                            a.leftArmSide, 0.0f);
                 else
-                    applyTorsoArmRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis, pos);
+                    applyTorsoArmRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis, pos,
+                                          a.leftArmSide);
             } else {
                 if (isLower && a.rightElbow != 0.0f)
                     applyTorsoElbowRotation(model, torsoBase, a.torsoAngle, rightShoulder, a.rightArm, a.rightArmAxis,
