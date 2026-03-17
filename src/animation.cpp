@@ -28,19 +28,24 @@ struct AnimAngles
     float shoulderDrop = 0.0f;
 };
 
+
 static float clampUnit(float x)
 {
-    if (x < 0.f)
-        return 0.f;
-    if (x > 1.f)
-        return 1.f;
+    const float minUnit = 0.0f;
+    const float maxUnit = 1.0f;
+    if (x < minUnit)
+        return minUnit;
+    if (x > maxUnit)
+        return maxUnit;
     return x;
 }
 
 
 static float easeInOut(float x)
 {
-    return x * x * (3.0f - 2.0f * x);
+    const float easeMul = 3.0f;
+    const float easeSub = 2.0f;
+    return x * x * (easeMul - easeSub * x);
 }
 
 
@@ -59,6 +64,10 @@ static float phaseProgress(float p, float start, float end)
 
 static glm::vec3 getPivotPoint(const body& myBody, int partType, bool proximal)
 {
+    const float halfScale = 0.5f;
+    const float sideRight = 1.0f;
+    const float sideLeft = -1.0f;
+    const float pivotZ = 0.0f;
     for (const auto& part : myBody.getParts())
     {
         if (part.getPartType() != static_cast<BodyPartType>(partType))
@@ -66,15 +75,15 @@ static glm::vec3 getPivotPoint(const body& myBody, int partType, bool proximal)
         float px = part.getX();
         float py = part.getY();
         glm::vec3 s = part.getScale();
-        float pivotY = proximal ? py + s.y * 0.5f : py - s.y * 0.5f;
+        float pivotY = proximal ? py + s.y * halfScale : py - s.y * halfScale;
         float pivotX;
         if (partType == RIGHT_UPPER_ARM || partType == LEFT_UPPER_ARM)
-            pivotX = px - (px > 0.0f ? 1.0f : -1.0f) * s.x * 0.5f;
+            pivotX = px - (px > 0.0f ? sideRight : sideLeft) * s.x * halfScale;
         else
             pivotX = px;
-        return glm::vec3(pivotX, pivotY, 0.0f);
+        return glm::vec3(pivotX, pivotY, pivotZ);
     }
-    return glm::vec3(0.0f, 0.0f, 0.0f);
+    return glm::vec3(0.0f, 0.0f, pivotZ);
 }
 
 
@@ -82,44 +91,53 @@ static AnimAngles anim_eagle_flight(float t)
 {
     AnimAngles a;
     const float riseTime = 0.4f;
+    const float flapFrequency = 50.0f;
+    const float wingFlapAmplitude = 25.0f;
+    const float shoulderDropScale = -0.5f;
+    const float liftSpeed = 30.0f;
 
     float angle;
     if (t < riseTime) {
         float s = t / riseTime;
         angle = glm::radians(90.0f) * s;
     } else {
-        float flap = std::sin((t - riseTime) * 50.0f);
-        angle = glm::radians(90.0f + 25.0f * flap);
+        float flap = std::sin((t - riseTime) * flapFrequency);
+        angle = glm::radians(90.0f + wingFlapAmplitude * flap);
     }
 
     a.leftArm     = angle;
     a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     a.rightArm      = -angle;
     a.rightArmAxis  = glm::vec3(0.0f, 0.0f, 1.0f);
-    a.shoulderDrop = (std::min(angle, glm::radians(90.0f)) / glm::radians(90.0f)) * -0.5f;
+    a.shoulderDrop = (std::min(angle, glm::radians(90.0f)) / glm::radians(90.0f)) * shoulderDropScale;
 
     if (t >= riseTime) {
-        float lift = (t - riseTime) * 30.0f;
+        float lift = (t - riseTime) * liftSpeed;
         a.bodyOffset = glm::vec3(0.0f, lift, 0.0f);
     }
 
     return a;
 }
 
+
 static AnimAngles anim_t_pose(float t)
 {
     AnimAngles a;
     const float period = 4.0f;
+    const float raiseEnd = 0.1f;
+    const float holdEnd = 0.7f;
+    const float lowerEnd = 0.80f;
+    const float shoulderDropScale = -0.5f;
     float p = std::fmod(t, period) / period;
 
     float angle;
-    if (p < 0.1f) {
-        float s = p / 0.1f;
+    if (p < raiseEnd) {
+        float s = p / raiseEnd;
         angle = glm::radians(90.0f) * s;
-    } else if (p < 0.7f) {
+    } else if (p < holdEnd) {
         angle = glm::radians(90.0f);
-    } else if (p < 0.80f) {
-        float s = (p - 0.7f) / 0.1f;
+    } else if (p < lowerEnd) {
+        float s = (p - holdEnd) / (lowerEnd - holdEnd);
         angle = glm::radians(90.0f) * (1.0f - s);
     } else {
         angle = 0.0f;
@@ -130,7 +148,7 @@ static AnimAngles anim_t_pose(float t)
     a.rightArm      = -angle;
     a.rightArmAxis  = glm::vec3(0.0f, 0.0f, 1.0f);
 
-    a.shoulderDrop = (angle / glm::radians(90.0f)) * -0.5f;
+    a.shoulderDrop = (angle / glm::radians(90.0f)) * shoulderDropScale;
     return a;
 }
 
@@ -140,8 +158,11 @@ static AnimAngles anim_waving(float t)
     AnimAngles a;
     const float introDuration = 0.45f;
     const float sweepDelay = 0.12f;
+    const float sweepFrequency = 6.5f;
     const float baseArm = glm::radians(-145.0f);
     const float baseElbow = glm::radians(-50.0f);
+    const float elbowBlendBias = 0.5f;
+    const float elbowBlendScale = 0.5f;
 
     a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     a.leftElbowAxis = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -154,7 +175,7 @@ static AnimAngles anim_waving(float t)
     }
 
     float waveT = t - introDuration;
-    float speedElbow = 7.5f;
+    const float speedElbow = 7.5f;
     float elbowWave = std::sin(waveT * speedElbow);
 
     if (waveT < sweepDelay) {
@@ -163,13 +184,13 @@ static AnimAngles anim_waving(float t)
         a.leftArmSide = 0.0f;
     } else {
         float sweepT = waveT - sweepDelay;
-        float zSweep = std::sin(sweepT * 6.5f);
+        float zSweep = std::sin(sweepT * sweepFrequency);
         a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
         a.leftArm = baseArm;
         a.leftArmSide = -glm::radians(7.0f) * zSweep;
     }
 
-    a.leftElbow = baseElbow + glm::radians(50.0f) * (0.5f + 0.5f * elbowWave);
+    a.leftElbow = baseElbow + glm::radians(50.0f) * (elbowBlendBias + elbowBlendScale * elbowWave);
     return a;
 }
 
@@ -178,6 +199,17 @@ static AnimAngles anim_jumping(float t)
 {
     AnimAngles a;
     const float period = 2.2f;
+    const float phase1End = 0.18f;
+    const float phase2End = 0.36f;
+    const float phase3End = 0.52f;
+    const float phase4End = 0.65f;
+    const float phase5Mid = 0.82f;
+    const float phase5aDuration = 0.17f;
+    const float phase5bDuration = 0.18f;
+
+    const float bodySquatY = -0.5f;
+    const float bodyJumpPeakY = 3.6f;
+    const float bodyApexY = 3.1f;
     float p = std::fmod(t, period) / period;
     float kneeAngle  = 0.0f;
     float legAngle   = 0.0f;
@@ -187,51 +219,51 @@ static AnimAngles anim_jumping(float t)
     float bodyY      = 0.0f;
 
     // Part 1 [0-18%]: Squat
-    if (p < 0.18f) {
-        float s = phaseProgress(p, 0.0f, 0.18f);
+    if (p < phase1End) {
+        float s = phaseProgress(p, 0.0f, phase1End);
         kneeAngle = linearInterp(0.0f, glm::radians(75.0f), s);
         legAngle = linearInterp(0.0f, glm::radians(-38.0f), s);
         armAngle = linearInterp(0.0f, glm::radians(25.0f), s);
         elbowAngle = linearInterp(0.0f, -glm::radians(70.0f), s);
         torsoAngle = linearInterp(0.0f, glm::radians(18.0f), s);
-        bodyY = linearInterp(0.0f, -0.5f, s);
+        bodyY = linearInterp(0.0f, bodySquatY, s);
     }
     // Part 2 [18-36%]: Jump
-    else if (p < 0.36f) {
-        float s = phaseProgress(p, 0.18f, 0.36f);
+    else if (p < phase2End) {
+        float s = phaseProgress(p, phase1End, phase2End);
         kneeAngle = linearInterp(glm::radians(75.0f), 0.0f, s);
         legAngle = linearInterp(glm::radians(-38.0f), glm::radians(-22.0f), s);
         armAngle = linearInterp(glm::radians(25.0f), glm::radians(-165.0f), s);
         elbowAngle = linearInterp(-glm::radians(70.0f), 0.0f, s);
         torsoAngle = linearInterp(glm::radians(18.0f), 0.0f, s);
-        bodyY = linearInterp(-0.5f, 3.6f, s);
+        bodyY = linearInterp(bodySquatY, bodyJumpPeakY, s);
     }
     // Part 3 [36-52%]: Apex
-    else if (p < 0.52f) {
-        float s = phaseProgress(p, 0.36f, 0.52f);
+    else if (p < phase3End) {
+        float s = phaseProgress(p, phase2End, phase3End);
         kneeAngle = linearInterp(0.0f, glm::radians(65.0f), s);
         legAngle = linearInterp(glm::radians(-22.0f), glm::radians(-8.0f), s);
         armAngle = glm::radians(-165.0f);
-        bodyY = linearInterp(3.6f, 3.1f, s);
+        bodyY = linearInterp(bodyJumpPeakY, bodyApexY, s);
     }
     // Part 4 [52-65%]: Descent
-    else if (p < 0.65f) {
-        float s = phaseProgress(p, 0.52f, 0.65f);
+    else if (p < phase4End) {
+        float s = phaseProgress(p, phase3End, phase4End);
         kneeAngle = linearInterp(glm::radians(65.0f), 0.0f, s);
         legAngle = linearInterp(glm::radians(-8.0f), 0.0f, s);
         armAngle = linearInterp(glm::radians(-165.0f), glm::radians(-60.0f), s);
         elbowAngle = linearInterp(0.0f, -glm::radians(35.0f), s);
-        bodyY = linearInterp(3.1f, 0.0f, s);
+        bodyY = linearInterp(bodyApexY, 0.0f, s);
     }
     // Part 5 [65-100%]: Recover
     else {
-        if (p < 0.82f) {
-            float s = easeInOut(clampUnit((p - 0.65f) / 0.17f));
+        if (p < phase5Mid) {
+            float s = easeInOut(clampUnit((p - phase4End) / phase5aDuration));
             armAngle = linearInterp(glm::radians(-60.0f), glm::radians(25.0f), s);
             elbowAngle = linearInterp(-glm::radians(35.0f), -glm::radians(70.0f), s);
         }
         else {
-            float s = easeInOut(clampUnit((p - 0.82f) / 0.18f));
+            float s = easeInOut(clampUnit((p - phase5Mid) / phase5bDuration));
             armAngle = linearInterp(glm::radians(25.0f), 0.0f, s);
             elbowAngle = linearInterp(-glm::radians(70.0f), 0.0f, s);
         }
@@ -255,7 +287,8 @@ static AnimAngles anim_jumping(float t)
 static AnimAngles anim_walking(float t)
 {
     AnimAngles a;
-    float swing = std::sin(t * 4.0f);
+    const float walkSwingFrequency = 4.0f;
+    float swing = std::sin(t * walkSwingFrequency);
 
     a.rightLeg = glm::radians(35.0f * swing);
     a.leftLeg = -glm::radians(35.0f * swing);
@@ -272,8 +305,10 @@ static AnimAngles anim_walking(float t)
 static AnimAngles anim_naruto_run(float t)
 {
     AnimAngles a;
-    float armSwing = std::sin(t * 5.0f);
-    float legSwing = std::sin(t * 12.0f);
+    const float armSwingFrequency = 5.0f;
+    const float legSwingFrequency = 12.0f;
+    float armSwing = std::sin(t * armSwingFrequency);
+    float legSwing = std::sin(t * legSwingFrequency);
 
     a.torsoAngle = glm::radians(45.0f);
     a.leftArm = glm::radians(55.0f + 8.0f * armSwing);
@@ -291,10 +326,18 @@ static AnimAngles anim_gangnam_style(float t)
 {
     AnimAngles a;
     const float period = 0.8f;
+    const float armPulseMultiplier = 2.0f;
+    const float legAxisX = 0.85f;
+    const float legAxisZ = 0.55f;
+    const float elbowAxisX = 0.55f;
+    const float elbowAxisZ = 0.84f;
+    const float bodyOffsetX = 0.10f;
+    const float bodyOffsetYBase = 0.22f;
+    const float bodyOffsetYScale = 0.18f;
     float p = std::fmod(t, period) / period;
     const float twoPi = 6.28318530718f;
     float beat = std::sin(p * twoPi);
-    float armPulse = std::sin(p * twoPi * 2.0f);
+    float armPulse = std::sin(p * twoPi * armPulseMultiplier);
     float rightLift = std::max(0.0f, beat);
     float leftLift = std::max(0.0f, -beat);
     const float archHip = 42.0f;
@@ -302,8 +345,8 @@ static AnimAngles anim_gangnam_style(float t)
     const float archKnee = 42.0f;
     const float raiseKnee = 30.0f;
 
-    a.rightLegAxis = glm::normalize(glm::vec3(0.85f, 0.0f, 0.55f));
-    a.leftLegAxis = glm::normalize(glm::vec3(0.85f, 0.0f, -0.55f));
+    a.rightLegAxis = glm::normalize(glm::vec3(legAxisX, 0.0f, legAxisZ));
+    a.leftLegAxis = glm::normalize(glm::vec3(legAxisX, 0.0f, -legAxisZ));
     a.rightLeg = glm::radians(-archHip - raiseHip * rightLift + 8.0f * leftLift);
     a.leftLeg = glm::radians(-archHip - raiseHip * leftLift + 8.0f * rightLift);
     a.rightKnee = glm::radians(archKnee + raiseKnee * rightLift + 8.0f * leftLift);
@@ -312,15 +355,16 @@ static AnimAngles anim_gangnam_style(float t)
     a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     a.rightArm = glm::radians(-48.0f + 2.0f * armPulse);
     a.leftArm = glm::radians(-43.0f + 2.0f * armPulse);
-    a.rightElbowAxis = glm::normalize(glm::vec3(0.55f, 0.0f, -0.84f));
-    a.leftElbowAxis = glm::normalize(glm::vec3(0.55f, 0.0f, 0.84f));
+    a.rightElbowAxis = glm::normalize(glm::vec3(elbowAxisX, 0.0f, -elbowAxisZ));
+    a.leftElbowAxis = glm::normalize(glm::vec3(elbowAxisX, 0.0f, elbowAxisZ));
     a.rightElbow = -glm::radians(68.0f);
     a.leftElbow = -glm::radians(62.0f);
-    a.bodyOffset = glm::vec3(0.10f * beat, 0.22f + 0.18f * std::fabs(beat), 0.0f);
+    a.bodyOffset = glm::vec3(bodyOffsetX * beat, bodyOffsetYBase + bodyOffsetYScale * std::fabs(beat), 0.0f);
     a.torsoAngle = glm::radians(6.0f * beat);
 
     return a;
 }
+
 
 static AnimAngles anim_mj_penching(float t)
 {
@@ -338,6 +382,7 @@ static AnimAngles anim_mj_penching(float t)
 
     return a;
 }
+
 
 static AnimAngles getAnimAngles(int state, float t)
 {
@@ -364,6 +409,7 @@ static AnimAngles getAnimAngles(int state, float t)
     }
 }
 
+
 static void applyGlobalBodyRotation(glm::mat4& model, const glm::vec3& torsoBase, float bodyPitch)
 {
     if (bodyPitch == 0.0f)
@@ -373,6 +419,7 @@ static void applyGlobalBodyRotation(glm::mat4& model, const glm::vec3& torsoBase
     model = glm::rotate(model, bodyPitch, glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::translate(model, glm::vec3(-torsoBase.x, -torsoBase.y, -torsoBase.z));
 }
+
 
 static void applyKneeRotation(glm::mat4& model, const glm::vec3& hip, float hipAngle, const glm::vec3& hipAxis, const glm::vec3& knee, float kneeAngle, const glm::vec3& partPos)
 {
@@ -385,6 +432,7 @@ static void applyKneeRotation(glm::mat4& model, const glm::vec3& hip, float hipA
     model = glm::translate(model, partPos);
 }
 
+
 static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float angle, const glm::vec3& axis, const glm::vec3& partPos)
 {
     glm::vec3 neg(-pivot.x, -pivot.y, -pivot.z);
@@ -393,6 +441,7 @@ static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float a
     model = glm::translate(model, neg);
     model = glm::translate(model, partPos);
 }
+
 
 static void applyTorsoArmRotation(glm::mat4& model, const glm::vec3& torsoBase, float torsoAngle, const glm::vec3& shoulder, float armAngle, const glm::vec3& armAxis, const glm::vec3& partPos, float sideAngle = 0.0f)
 {
@@ -408,6 +457,7 @@ static void applyTorsoArmRotation(glm::mat4& model, const glm::vec3& torsoBase, 
 
     model = glm::translate(model, partPos);
 }
+
 
 static void applyTorsoElbowRotation(glm::mat4& model, const glm::vec3& torsoBase, float torsoAngle, const glm::vec3& shoulder, float shoulderAngle, const glm::vec3& shoulderAxis, const glm::vec3& elbow, float elbowAngle, const glm::vec3& elbowAxis, const glm::vec3& partPos, float shoulderSideAngle = 0.0f, float elbowSideAngle = 0.0f)
 {
@@ -449,6 +499,30 @@ void Animator::update(float deltaTime)
 
 void Animator::draw(Shader& ourShader, body& myBody)
 {
+    const glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
+    const int cubeVertexCount = 36;
+    const float skinR = 1.0f;
+    const float skinG = 187.0f / 255.0f;
+    const float skinB = 119.0f / 255.0f;
+    const float torsoR = 0.0f;
+    const float torsoG = 238.0f / 255.0f;
+    const float torsoB = 221.0f / 255.0f;
+    const float legR = 0.0f;
+    const float legG = 136.0f / 255.0f;
+    const float legB = 204.0f / 255.0f;
+    const float capR = 0.0f;
+    const float capG = 0.0f;
+    const float capB = 0.0f;
+    const float visorR = 1.0f;
+    const float visorG = 0.0f;
+    const float visorB = 0.0f;
+    const float wireR = 255.0f;
+    const float wireG = 0.0f;
+    const float wireB = 0.0f;
+    const float wireLineWidth = 2.0f;
+    const float polygonOffsetFactor = -1.0f;
+    const float polygonOffsetUnits = -1.0f;
+
     const AnimAngles a = getAnimAngles(_state, _time);
     const glm::vec3 torsoBase = getPivotPoint(myBody, TORSO, false) + a.bodyOffset;
 
@@ -480,44 +554,44 @@ void Animator::draw(Shader& ourShader, body& myBody)
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
         applyGlobalBodyRotation(model, torsoBase, a.bodyPitch);
-        applyPivotRotation(model, torsoBase, a.torsoAngle, glm::vec3(1,0,0), pos + a.bodyOffset);
+        applyPivotRotation(model, torsoBase, a.torsoAngle, xAxis, pos + a.bodyOffset);
         model = glm::scale(model, part.getScale());
         if (type == CAP)
-            ourShader.setVec3("overrideColor", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("overrideColor", capR, capG, capB);
         else
-            ourShader.setVec3("overrideColor", 1.0f, 0.0f, 0.0f);
+            ourShader.setVec3("overrideColor", visorR, visorG, visorB);
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
     }
 
     // ---- HEAD ----
-    ourShader.setVec3("overrideColor", 1.0f, 187.0f/255.0f, 119.0f/255.0f);
+    ourShader.setVec3("overrideColor", skinR, skinG, skinB);
     for (const auto& part : myBody.getParts()) {
         if (part.getPartType() != HEAD) continue;
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
         applyGlobalBodyRotation(model, torsoBase, a.bodyPitch);
-        applyPivotRotation(model, torsoBase, a.torsoAngle, glm::vec3(1,0,0), pos + a.bodyOffset);
+        applyPivotRotation(model, torsoBase, a.torsoAngle, xAxis, pos + a.bodyOffset);
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
     }
 
     // ---- TORSO ----
-    ourShader.setVec3("overrideColor", 0.0f, 238.0f/255.0f, 221.0f/255.0f);
+    ourShader.setVec3("overrideColor", torsoR, torsoG, torsoB);
     for (const auto& part : myBody.getParts()) {
         if (part.getPartType() != TORSO) continue;
         glm::vec3 pos(part.getX(), part.getY(), part.getZ());
         glm::mat4 model(1.0f);
         applyGlobalBodyRotation(model, torsoBase, a.bodyPitch);
-        applyPivotRotation(model, torsoBase, a.torsoAngle, glm::vec3(1,0,0), pos + a.bodyOffset);
+        applyPivotRotation(model, torsoBase, a.torsoAngle, xAxis, pos + a.bodyOffset);
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
     }
 
     // ---- ARMS ----
-    ourShader.setVec3("overrideColor", 1.0f, 187.0f/255.0f, 119.0f/255.0f);
+    ourShader.setVec3("overrideColor", skinR, skinG, skinB);
     for (const auto& part : myBody.getParts()) {
         BodyPartType type = part.getPartType();
         if (type != RIGHT_UPPER_ARM && type != RIGHT_LOWER_ARM && type != LEFT_UPPER_ARM && type != LEFT_LOWER_ARM)
@@ -547,11 +621,11 @@ void Animator::draw(Shader& ourShader, body& myBody)
         }
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
     }
 
     // ---- LEGS ----
-    ourShader.setVec3("overrideColor", 0.0f, 136.0f/255.0f, 204.0f/255.0f);
+    ourShader.setVec3("overrideColor", legR, legG, legB);
     for (const auto& part : myBody.getParts()) {
         BodyPartType type = part.getPartType();
         if (type != RIGHT_THIGH && type != RIGHT_LOWER_LEG && type != LEFT_THIGH && type != LEFT_LOWER_LEG)
@@ -573,15 +647,15 @@ void Animator::draw(Shader& ourShader, body& myBody)
         }
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
     }
 
 
-    ourShader.setVec3("overrideColor", 255.0f, 0.0f, 0.0f);
-    glLineWidth(2.0f);
+    ourShader.setVec3("overrideColor", wireR, wireG, wireB);
+    glLineWidth(wireLineWidth);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(-1.0f, -1.0f);
+    glPolygonOffset(polygonOffsetFactor, polygonOffsetUnits);
     for (const auto& part : myBody.getParts())
     {
         BodyPartType type = part.getPartType();
@@ -589,7 +663,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
         applyGlobalBodyRotation(model, torsoBase, a.bodyPitch);
         if (type == HEAD || type == TORSO) {
             glm::vec3 pos(part.getX(), part.getY(), part.getZ());
-            applyPivotRotation(model, torsoBase, a.torsoAngle, glm::vec3(1,0,0), pos + a.bodyOffset);
+            applyPivotRotation(model, torsoBase, a.torsoAngle, xAxis, pos + a.bodyOffset);
         } else if (type == RIGHT_UPPER_ARM || type == RIGHT_LOWER_ARM ||
                    type == LEFT_UPPER_ARM || type == LEFT_LOWER_ARM) {
             glm::vec3 pos(part.getX(), part.getY(), part.getZ());
@@ -633,7 +707,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
         }
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
     }
 
     glDisable(GL_POLYGON_OFFSET_LINE);
