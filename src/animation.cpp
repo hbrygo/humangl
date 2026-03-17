@@ -108,7 +108,7 @@ static AnimAngles anim_eagle_flight(float t)
     }
 
     a.leftArm     = angle;
-    a.leftArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+    a.leftArmAxis = glm::vec3(0.0f, 0.0f, 1.0f);
     a.rightArm      = -angle;
     a.rightArmAxis  = glm::vec3(0.0f, 0.0f, 1.0f);
     a.shoulderDrop = (std::min(angle, glm::radians(90.0f)) / glm::radians(90.0f)) * shoulderDropScale;
