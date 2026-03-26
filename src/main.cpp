@@ -553,6 +553,24 @@ void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musi
             animator.setState(EAGLE_FLIGHT);
             musicState.store(EAGLE_FLIGHT);
             pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+            animator.setState(T_POSE);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+            animator.setState(NARUTO_RUN);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+            animator.setState(EAGLE_FLIGHT);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
+            animator.setState(GANGNAM_STYLE);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
+            animator.setState(MJ_PENCHING);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+            animator.setState(HARDBASS_ROBLOX);
+            pressedAnimationKey = true;
         }
         else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
         {
@@ -590,12 +608,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    // Camera is now orbited with keys; mouse movement is unused.
-    (void)window; (void)xpos; (void)ypos;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
