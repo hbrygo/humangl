@@ -196,33 +196,6 @@ static AnimAngles anim_waving(float t)
     return a;
 }
 
-
-static float clampUnit(float x)
-{
-    if (x < 0.f)
-        return 0.f;
-    if (x > 1.f)
-        return 1.f;
-    return x;
-}
-
-// courbe cubique
-static float easeInOut(float x)
-{
-    return x * x * (3.0f - 2.0f * x);
-}
-
-static float linearInterp(float a, float b, float s)
-{
-    return a + (b - a) * s;
-}
-
-static float phaseProgress(float p, float start, float end)
-{
-    float t = (p - start) / (end - start);
-    return easeInOut(clampUnit(t));
-}
-
 static AnimAngles anim_jumping(float t)
 {
     AnimAngles a;
@@ -517,18 +490,6 @@ static void applyKneeRotation(glm::mat4& model, const glm::vec3& hip, float hipA
     model = glm::translate(model, partPos);
 }
 
-// Rotate the forearm: first apply shoulder rotation, then elbow bend around the elbow pivot.
-static void applyElbowRotation(glm::mat4& model, const glm::vec3& shoulder, float shoulderAngle, const glm::vec3& shoulderAxis, const glm::vec3& elbow, float elbowAngle, const glm::vec3& partPos)
-{
-    const glm::vec3 elbowAxis(1.0f, 0.0f, 0.0f);
-    model = glm::translate(model, shoulder);
-    model = glm::rotate(model, shoulderAngle, shoulderAxis);
-    model = glm::translate(model, elbow - shoulder);
-    model = glm::rotate(model, elbowAngle, elbowAxis);
-    model = glm::translate(model, glm::vec3(-elbow.x, -elbow.y, -elbow.z));
-    model = glm::translate(model, partPos);
-}
-
 static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float angle, const glm::vec3& axis, const glm::vec3& partPos)
 {
     glm::vec3 neg(-pivot.x, -pivot.y, -pivot.z);
@@ -649,8 +610,7 @@ void Animator::draw(Shader& ourShader, body& myBody)
         myBody.draw_cap(ourShader);
         return;
     }
-    
-    myBody.draw_cap(ourShader);
+
     ourShader.setBool("useOverrideColor", true);
 
     // ---- CAP / VISIERE ----

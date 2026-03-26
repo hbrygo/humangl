@@ -14,7 +14,7 @@ enum Animations //ajouter des animations pour avoir 10 int (0-9)
     EAGLE_FLIGHT, // PSY - Gangnam Style
     GANGNAM_STYLE, // AIGLES QUI HURLENT FORT MURICAAAAAAAA
     MJ_PENCHING, // Michael Jackson - Billie Jean
-    HARDBASS_ROBLOX, // titre
+    HARDBASS_ROBLOX, // Die Yound
 };
 
 class Animator
