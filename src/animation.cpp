@@ -420,7 +420,7 @@ static AnimAngles anim_jumpstyle(float t)
     float torsoHoldWeight = std::fabs(swing);
 
     a.bodyPitch = glm::radians(frontBending);
-    a.bodyYaw = glm::radians(20.0f * swing);
+    a.bodyYaw = glm::radians(55.0f * swing);
     a.headPitch = glm::radians(frontBending + headSwingOsc);
     a.torsoAngle = glm::radians(torsoSwingMax * swing * torsoHoldWeight);
     a.rightArmAxis = glm::vec3(1.0f, 0.0f, 0.0f);
