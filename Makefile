@@ -34,6 +34,7 @@ ifeq ($(UNAME_S),Darwin)
 		LDLIBS := -L$(HOMEBREW_LIBARM) $(LDLIBS)
 	endif
 else
+	LDFLAGS = -no-pie
 	LDLIBS	= -lglfw -lGL -ldl
 endif
 
@@ -44,7 +45,7 @@ endif
 	${CC} ${CFLAGS} -c $< -o $@ -I ${INCS} -I ${GLAD_INC} -I ${GLFW_INC} -I ${KHR_INC} -I ${GLM_INC} -I ${CAM_INC} -I ${AUDIO_INC}
 
 ${NAME}: ${OBJS}
-	${CXX} ${OBJS} ${STATIC_LIBS} ${CXXFLAGS} ${LDLIBS} -o ${NAME}
+	${CXX} ${OBJS} ${STATIC_LIBS} ${CXXFLAGS} ${LDFLAGS} ${LDLIBS} -o ${NAME}
 
 all: ${NAME}
 
