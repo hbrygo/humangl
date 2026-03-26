@@ -10,12 +10,16 @@ KHR_INC = khr
 GLFW_INC = glfw-3.4/include
 GLM_INC = glm
 CAM_INC = Camera.hpp
+AUDIO_INC = miniaudio
 NAME	= humangl
 CC      = cc
 CXX     = c++
 RM		= rm -rf
 CFLAGS  = -Wall -Wextra -Werror -g -std=c11 -DGL_SILENCE_DEPRECATION
 CXXFLAGS= -Wall -Wextra -Werror -g -std=c++11 -DGL_SILENCE_DEPRECATION
+
+STATIC_LIBS = miniaudio/libminiaudio_all.a
+
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	# macOS: use frameworks for OpenGL and Cocoa, GLFW should be installed via Homebrew
@@ -34,13 +38,13 @@ else
 endif
 
 .cpp.o:
-		${CXX} ${CXXFLAGS} -c $< -o ${<:.cpp=.o} -I ${INCS} -I ${GLAD_INC} -I ${GLFW_INC} -I ${KHR_INC} -I ${GLM_INC} -I ${CAM_INC}
+		${CXX} ${CXXFLAGS} -c $< -o ${<:.cpp=.o} -I ${INCS} -I ${GLAD_INC} -I ${GLFW_INC} -I ${KHR_INC} -I ${GLM_INC} -I ${CAM_INC} -I ${AUDIO_INC}
 
 %.o: %.c
-	${CC} ${CFLAGS} -c $< -o $@ -I ${INCS} -I ${GLAD_INC} -I ${GLFW_INC} -I ${KHR_INC} -I ${GLM_INC} -I ${CAM_INC}
+	${CC} ${CFLAGS} -c $< -o $@ -I ${INCS} -I ${GLAD_INC} -I ${GLFW_INC} -I ${KHR_INC} -I ${GLM_INC} -I ${CAM_INC} -I ${AUDIO_INC}
 
 ${NAME}: ${OBJS}
-	${CXX} ${OBJS} ${CXXFLAGS} ${LDLIBS} -o ${NAME}
+	${CXX} ${OBJS} ${STATIC_LIBS} ${CXXFLAGS} ${LDLIBS} -o ${NAME}
 
 all: ${NAME}
 

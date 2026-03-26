@@ -196,7 +196,6 @@ static AnimAngles anim_waving(float t)
     return a;
 }
 
-
 static AnimAngles anim_jumping(float t)
 {
     AnimAngles a;
@@ -491,7 +490,6 @@ static void applyKneeRotation(glm::mat4& model, const glm::vec3& hip, float hipA
     model = glm::translate(model, partPos);
 }
 
-
 static void applyPivotRotation(glm::mat4& model, const glm::vec3& pivot, float angle, const glm::vec3& axis, const glm::vec3& partPos)
 {
     glm::vec3 neg(-pivot.x, -pivot.y, -pivot.z);
@@ -539,8 +537,7 @@ static void applyTorsoElbowRotation(glm::mat4& model, const glm::vec3& torsoBase
 }
 
 
-Animator::Animator() : _state(NONE), _time(0.0f) {}
-
+Animator::Animator() : _state(NONE), _time(0.0f), _pid(0) {}
 
 void Animator::setState(Animations state)
 {
@@ -548,6 +545,15 @@ void Animator::setState(Animations state)
     _time  = 0.0f;
 }
 
+void Animator::setPID(int pid)
+{
+    _pid = pid;
+}
+
+int Animator::getPID() const
+{
+    return _pid;
+}
 
 void Animator::update(float deltaTime)
 {
@@ -721,78 +727,6 @@ void Animator::draw(Shader& ourShader, body& myBody)
                 applyKneeRotation(model, rightHip,  a.rightLeg, a.rightLegAxis, rightKnee,  a.rightKnee,  pos + a.bodyOffset);
             else
                 applyKneeRotation(model, leftHip, a.leftLeg, a.leftLegAxis, leftKnee, a.leftKnee, pos + a.bodyOffset);
-        }
-        model = glm::scale(model, part.getScale());
-        ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
-    }
-
-
-    ourShader.setVec3("overrideColor", wireR, wireG, wireB);
-    glLineWidth(wireLineWidth);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(polygonOffsetFactor, polygonOffsetUnits);
-    for (const auto& part : myBody.getParts())
-    {
-        BodyPartType type = part.getPartType();
-        glm::mat4 model(1.0f);
-        applyGlobalBodyRotation(model, torsoBase, a.bodyPitch, a.bodyYaw);
-        if (type == HEAD || type == TORSO) {
-            glm::vec3 pos(part.getX(), part.getY(), part.getZ());
-            glm::vec3 partPos = pos + a.bodyOffset;
-            model = glm::translate(model, torsoBase);
-            model = glm::rotate(model, a.torsoAngle, xAxis);
-            model = glm::translate(model, glm::vec3(-torsoBase.x, -torsoBase.y, -torsoBase.z));
-            if (type == HEAD) {
-                model = glm::translate(model, headBase);
-                model = glm::rotate(model, a.headPitch, xAxis);
-                model = glm::translate(model, glm::vec3(-headBase.x, -headBase.y, -headBase.z));
-            }
-            model = glm::translate(model, partPos);
-        } else if (type == RIGHT_UPPER_ARM || type == RIGHT_LOWER_ARM ||
-                   type == LEFT_UPPER_ARM || type == LEFT_LOWER_ARM) {
-            glm::vec3 pos(part.getX(), part.getY(), part.getZ());
-            pos = pos + a.bodyOffset + shoulderOff;
-            bool isLeftArm = (part.getX() > 0.0f);
-            bool isLower = (type == RIGHT_LOWER_ARM || type == LEFT_LOWER_ARM);
-            if (isLeftArm) {
-                if (isLower && a.leftElbow != 0.0f)
-                    applyTorsoElbowRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis,
-                                            leftElbow, a.leftElbow, a.leftElbowAxis, pos,
-                                            a.leftArmSide, 0.0f);
-                else
-                    applyTorsoArmRotation(model, torsoBase, a.torsoAngle, leftShoulder, a.leftArm, a.leftArmAxis, pos,
-                                          a.leftArmSide);
-            } else {
-                if (isLower && a.rightElbow != 0.0f)
-                    applyTorsoElbowRotation(model, torsoBase, a.torsoAngle, rightShoulder, a.rightArm, a.rightArmAxis,
-                                            rightElbow, a.rightElbow, a.rightElbowAxis, pos,
-                                            a.rightArmSide, a.rightElbowSide);
-                else
-                    applyTorsoArmRotation(model, torsoBase, a.torsoAngle, rightShoulder, a.rightArm, a.rightArmAxis, pos,
-                                          a.rightArmSide);
-            }
-        } else if (type == RIGHT_THIGH || type == RIGHT_LOWER_LEG ||
-                   type == LEFT_THIGH || type == LEFT_LOWER_LEG) {
-            glm::vec3 pos(part.getX(), part.getY(), part.getZ());
-            model = glm::translate(model, torsoBase);
-            model = glm::rotate(model, a.torsoAngle, xAxis);
-            model = glm::translate(model, glm::vec3(-torsoBase.x, -torsoBase.y, -torsoBase.z));
-            bool isRight = (pos.x < 0.0f);
-            if (type == RIGHT_THIGH || type == LEFT_THIGH) {
-                if (isRight)
-                    applyPivotRotation(model, rightHip,  a.rightLeg,  a.rightLegAxis, pos + a.bodyOffset);
-                else
-                    applyPivotRotation(model, leftHip, a.leftLeg, a.leftLegAxis, pos + a.bodyOffset);
-            } else {
-                if (isRight)
-                    applyKneeRotation(model, rightHip,  a.rightLeg, a.rightLegAxis, rightKnee,  a.rightKnee,  pos + a.bodyOffset);
-                else
-                    applyKneeRotation(model, leftHip, a.leftLeg, a.leftLegAxis, leftKnee, a.leftKnee, pos + a.bodyOffset);
-            }
-        } else {
-            continue;
         }
         model = glm::scale(model, part.getScale());
         ourShader.setMat4("model", model);

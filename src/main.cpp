@@ -1,13 +1,18 @@
 #include "include.hpp"
 #include "animation.hpp"
+#include <thread>
+#include <atomic>
+#include <chrono>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window, Animator &animator);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musicState);
 
 // Orbit camera: centred on the character, orbited with WASD/arrows, zoomed with scroll.
 Camera camera(glm::vec3(0.0f, -4.0f, 0.0f)); // target ≈ character centre
@@ -37,12 +42,7 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     point = cubePosition + glm::vec3(0.0f, 1.0f, 1.0f);
     attachmentPoints[point] = attachmentStates[3];
 
-    // right front
-    point = cubePosition + glm::vec3(-1.0f, 0.0f, 1.0f);
-    attachmentPoints[point] = attachmentStates[4];
-
-    // right back
-    point = cubePosition + glm::vec3(-1.0f, 0.0f, -1.0f);
+    // left frontminiaudio
     attachmentPoints[point] = attachmentStates[5];
 
     // left back
@@ -72,8 +72,135 @@ std::map<glm::vec3, int> setAtachementPoints(const glm::vec3& cubePosition, std:
     return attachmentPoints;
 }
 
+int musicThread(std::atomic<int> *musicState)
+{
+    ma_result result;
+    ma_engine engine;
+
+    int currentState = 0;
+    bool shouldExit = false;
+
+    while (!shouldExit)
+    {
+        int newState = musicState->load();
+
+        // Vérifier si on doit arrêter le thread
+        if (newState == -1)
+        {
+            shouldExit = true;
+            break;
+        }
+
+        // Si l'état change
+        if (newState != currentState)
+        {
+            // Arrêter la musique actuelle si elle joue
+            if (currentState != NONE)
+                ma_engine_stop(&engine);
+
+            currentState = newState;
+
+            switch (currentState) {
+            case WAVING:
+                std::cout << "Musique arrêtée" << std::endl;
+                break;
+
+            case JUMPING:
+                std::cout << "Musique arrêtée" << std::endl;
+                break;
+
+            case WALKING:
+                std::cout << "Joue: DANS_LA_RUE.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/DANS_LA_RUE.mp3", NULL);
+                if (result != MA_SUCCESS)
+                {
+                    std::cout << "Erreur lors de la lecture de DANS_LA_RUE.mp3: " << result << std::endl;
+                }
+                break;
+
+            case T_POSE:
+                std::cout << "Joue: Ultimate.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/Ultimate.mp3", NULL);
+                if (result != MA_SUCCESS)
+                {
+                    std::cout << "Erreur lors de la lecture de Ultimate.mp3: " << result << std::endl;
+                }
+                break;
+            case NARUTO_RUN:
+                std::cout << "Joue: Naruto.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/Naruto.mp3", NULL);
+                if (result != MA_SUCCESS)
+                    std::cout << "Erreur lors de la lecture de Naruto.mp3: " << result << std::endl;
+                break;
+            case EAGLE_FLIGHT:
+                std::cout << "Joue: Eagle_Flight.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/Eagle_Flight.mp3", NULL);
+                if (result != MA_SUCCESS)
+                    std::cout << "Erreur lors de la lecture de Eagle_Flight.mp3: " << result << std::endl;
+                break;
+            case GANGNAM_STYLE:
+                std::cout << "Joue: Gangnam_Style.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/Gangnam_Style.mp3", NULL);
+                if (result != MA_SUCCESS)
+                    std::cout << "Erreur lors de la lecture de Gangnam_Style.mp3: " << result << std::endl;
+                break;
+            case MJ_PENCHING:
+                std::cout << "Joue: MJ_Penching.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/MJ_Penching.mp3", NULL);
+                if (result != MA_SUCCESS)
+                    std::cout << "Erreur lors de la lecture de MJ_Penching.mp3: " << result << std::endl;
+                break;
+            case HARDBASS_ROBLOX:
+                std::cout << "Joue: Hardbass_Roblox.mp3" << std::endl;
+                result = ma_engine_init(NULL, &engine);
+                if (result != MA_SUCCESS)
+                    return -1;
+                result = ma_engine_play_sound(&engine, "miniaudio/Hardbass_Roblox.mp3", NULL);
+                if (result != MA_SUCCESS)
+                    std::cout << "Erreur lors de la lecture de Hardbass_Roblox.mp3: " << result << std::endl;
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        // Pause pour éviter de surcharger le CPU
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    // Arrêter toute musique avant de nettoyer
+    ma_engine_stop(&engine); // Utiliser ma_engine_stop_all_sounds
+    ma_engine_uninit(&engine);
+    std::cout << "Thread musical terminé" << std::endl;
+    return 0;
+}
+
 int main()
 {
+    /****************************** DEBUT THREAD MUSIQUE ***************************/
+    std::atomic<int> musicState(NONE);
+
+    std::thread musicThreadHandle(musicThread, &musicState);
+    /****************************** FIN THREAD MUSIQUE ***************************/
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -333,12 +460,11 @@ int main()
 
         // input
         // -----
-    processInput(window, animator);
+        processInput(window, animator, musicState);
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
-    // no textures to bind
 
         // activate shader
         ourShader.use();
@@ -369,6 +495,11 @@ int main()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
+    // À la fin du main, AVANT glfwTerminate()
+    std::cout << "Arrêt du thread musical..." << std::endl;
+    musicState.store(-1);  // Signal d'arrêt
+    musicThreadHandle.join();  // Attendre que le thread se termine proprement
+    
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
@@ -377,11 +508,12 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window, Animator &animator)
+void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musicState)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // Orbit camera: A/← orbit left, D/→ orbit right, W/↑ orbit up, S/↓ orbit down.
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboard(Camera::ORBIT_LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
@@ -395,15 +527,31 @@ void processInput(GLFWwindow *window, Animator &animator)
     if (!pressedAnimationKey) {
         if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
             animator.setState(NONE);
+            musicState.store(NONE);
             pressedAnimationKey = true;
         } else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
             animator.setState(WAVING);
+            musicState.store(NONE);
             pressedAnimationKey = true;
         } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
             animator.setState(WALKING);
+            musicState.store(WALKING);
             pressedAnimationKey = true;
         } else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
             animator.setState(JUMPING);
+            musicState.store(NONE);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+            animator.setState(T_POSE);
+            musicState.store(T_POSE);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+            animator.setState(NARUTO_RUN);
+            musicState.store(NARUTO_RUN);
+            pressedAnimationKey = true;
+        } else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+            animator.setState(EAGLE_FLIGHT);
+            musicState.store(EAGLE_FLIGHT);
             pressedAnimationKey = true;
         } else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
             animator.setState(T_POSE);
@@ -424,9 +572,32 @@ void processInput(GLFWwindow *window, Animator &animator)
             animator.setState(HARDBASS_ROBLOX);
             pressedAnimationKey = true;
         }
-    }
-    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE)
+        else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+        {
+            animator.setState(GANGNAM_STYLE);
+            musicState.store(GANGNAM_STYLE);
+            pressedAnimationKey = true;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+        {
+            animator.setState(MJ_PENCHING);
+            musicState.store(MJ_PENCHING);
+            pressedAnimationKey = true;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+        {
+            animator.setState(HARDBASS_ROBLOX);
+            musicState.store(HARDBASS_ROBLOX);
+            pressedAnimationKey = true;
+        }
+}
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE) {
         pressedAnimationKey = false;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

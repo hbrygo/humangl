@@ -13,9 +13,10 @@
 #include "FileSystem.hpp"
 #include "stb_image.h"
 #include "Camera.hpp"
+#include "miniaudio.h"
 #include <map>
 
-#define SIZE 1
+#define SIZE 3
 // Allow using glm::vec3 as key in ordered containers (std::map, std::set) by
 // providing a strict-weak-ordering comparator specialization for std::less.
 // This performs a lexicographic compare on (x, y, z).
@@ -426,5 +427,7 @@ class body {
             ourShader.setBool("useOverrideColor", false);
         }
 };
+
+int playSong(const char *filename);
 
 #endif
