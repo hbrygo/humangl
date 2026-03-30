@@ -100,82 +100,75 @@ int musicThread(std::atomic<int> *musicState)
 
             currentState = newState;
 
+            std::string path = "miniaudio/" + std::to_string(currentState) + ".mp3";
+            // std::cout << path << std::endl;
             switch (currentState) {
             case WAVING:
-                std::cout << "Musique arrêtée" << std::endl;
                 break;
 
             case JUMPING:
-                std::cout << "Musique arrêtée" << std::endl;
                 break;
 
             case WALKING:
-                std::cout << "Joue: DANS_LA_RUE.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/DANS_LA_RUE.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
                 {
-                    std::cout << "Erreur lors de la lecture de DANS_LA_RUE.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 }
                 break;
 
             case T_POSE:
-                std::cout << "Joue: Ultimate.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/Ultimate.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
                 {
-                    std::cout << "Erreur lors de la lecture de Ultimate.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 }
                 break;
             case NARUTO_RUN:
-                std::cout << "Joue: Naruto.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/Naruto.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
-                    std::cout << "Erreur lors de la lecture de Naruto.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 break;
             case EAGLE_FLIGHT:
-                std::cout << "Joue: Eagle_Flight.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/Eagle_Flight.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
-                    std::cout << "Erreur lors de la lecture de Eagle_Flight.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 break;
             case GANGNAM_STYLE:
-                std::cout << "Joue: Gangnam_Style.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/Gangnam_Style.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
-                    std::cout << "Erreur lors de la lecture de Gangnam_Style.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 break;
             case MJ_PENCHING:
-                std::cout << "Joue: MJ_Penching.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/MJ_Penching.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
-                    std::cout << "Erreur lors de la lecture de MJ_Penching.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 break;
             case HARDBASS_ROBLOX:
-                std::cout << "Joue: Hardbass_Roblox.mp3" << std::endl;
                 result = ma_engine_init(NULL, &engine);
                 if (result != MA_SUCCESS)
                     return -1;
-                result = ma_engine_play_sound(&engine, "miniaudio/Hardbass_Roblox.mp3", NULL);
+                result = ma_engine_play_sound(&engine, path.c_str(), NULL);
                 if (result != MA_SUCCESS)
-                    std::cout << "Erreur lors de la lecture de Hardbass_Roblox.mp3: " << result << std::endl;
+                    std::cout << "Error: while playing mp3" << result << std::endl;
                 break;
 
             default:
@@ -214,7 +207,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lderidde", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Merci Lderidde <3", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -524,7 +517,8 @@ void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musi
         camera.ProcessKeyboard(Camera::ORBIT_DOWN, deltaTime);
 
     static bool pressedAnimationKey = false;
-    if (!pressedAnimationKey) {
+    if (!pressedAnimationKey)
+    {
         if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
             animator.setState(NONE);
             musicState.store(NONE);
@@ -553,49 +547,25 @@ void processInput(GLFWwindow *window, Animator &animator, std::atomic<int> &musi
             animator.setState(EAGLE_FLIGHT);
             musicState.store(EAGLE_FLIGHT);
             pressedAnimationKey = true;
-        } else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-            animator.setState(T_POSE);
-            pressedAnimationKey = true;
-        } else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-            animator.setState(NARUTO_RUN);
-            pressedAnimationKey = true;
-        } else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
-            animator.setState(EAGLE_FLIGHT);
-            pressedAnimationKey = true;
         } else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
-            animator.setState(GANGNAM_STYLE);
-            pressedAnimationKey = true;
-        } else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
-            animator.setState(MJ_PENCHING);
-            pressedAnimationKey = true;
-        } else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
-            animator.setState(HARDBASS_ROBLOX);
-            pressedAnimationKey = true;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
-        {
             animator.setState(GANGNAM_STYLE);
             musicState.store(GANGNAM_STYLE);
             pressedAnimationKey = true;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-        {
+        } else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
             animator.setState(MJ_PENCHING);
             musicState.store(MJ_PENCHING);
             pressedAnimationKey = true;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
-        {
+        } else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
             animator.setState(HARDBASS_ROBLOX);
             musicState.store(HARDBASS_ROBLOX);
-            pressedAnimationKey = true;
         }
-}
+    }
     if (glfwGetKey(window, GLFW_KEY_0) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE &&
         glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE &&
         glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE &&
         glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE &&
-        glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE) {
+        glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE)
+    {
         pressedAnimationKey = false;
     }
 }

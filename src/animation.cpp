@@ -581,12 +581,6 @@ void Animator::draw(Shader& ourShader, body& myBody)
     const float visorR = 1.0f;
     const float visorG = 0.0f;
     const float visorB = 0.0f;
-    // const float wireR = 255.0f;
-    // const float wireG = 0.0f;
-    // const float wireB = 0.0f;
-    // const float wireLineWidth = 2.0f;
-    // const float polygonOffsetFactor = -1.0f;
-    // const float polygonOffsetUnits = -1.0f;
 
     const AnimAngles a = getAnimAngles(_state, _time);
     const glm::vec3 torsoBase = getPivotPoint(myBody, TORSO, false) + a.bodyOffset;
